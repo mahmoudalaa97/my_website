@@ -1536,13 +1536,13 @@ body {
        TESTIMONIAL
     =================
 */
-.mh-testimonial.mh-single-testimonial .mh-client-item p {
+.mh-client-reviews.mh-single-testimonial .mh-client-item p {
   padding: 0 160px;
   margin: 60px 0; }
-.mh-testimonial.mh-2-testimonial .mh-client-item p {
+.mh-client-reviews.mh-2-testimonial .mh-client-item p {
   padding: 0 0px;
   margin: 20px 0; }
-.mh-testimonial .mh-client-item {
+.mh-client-reviews .mh-client-item {
   margin: 0 auto;
   float: none;
   text-align: center;
@@ -1550,7 +1550,7 @@ body {
   -webkit-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
   -moz-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12); }
-  .mh-testimonial .mh-client-item img {
+  .mh-client-reviews .mh-client-item img {
     width: 50%;
     float: none;
     margin: 0 auto;
@@ -1558,40 +1558,40 @@ body {
     margin: 0 auto;
     margin-bottom: 20px;
     border-radius: 50%; }
-  .mh-testimonial .mh-client-item p {
+  .mh-client-reviews .mh-client-item p {
     margin: 10px 0; }
-    .mh-testimonial .mh-client-item p::before {
+    .mh-client-reviews .mh-client-item p::before {
       content: open-quote;
       margin-right: 6px;
       font-size: 20px; }
-    .mh-testimonial .mh-client-item p::after {
+    .mh-client-reviews .mh-client-item p::after {
       content: close-quote;
       margin-left: 6px;
       font-size: 20px; }
-  .mh-testimonial .mh-client-item h4 {
+  .mh-client-reviews .mh-client-item h4 {
     font-size: 16px;
     line-height: 25px;
     margin-top: 30px;
     margin-bottom: 0; }
-  .mh-testimonial .mh-client-item span {
+  .mh-client-reviews .mh-client-item span {
     font-size: 14px;
     line-height: 24px; }
-.mh-testimonial .each-client-item {
+.mh-client-reviews .each-client-item {
   margin: 30px 20px; }
-.mh-testimonial .owl-controls .owl-nav {
+.mh-client-reviews .owl-controls .owl-nav {
   display: none !important; }
-.mh-testimonial .owl-controls .owl-dots {
+.mh-client-reviews .owl-controls .owl-dots {
   padding-left: 15px;
   margin-top: 30px;
   text-align: center; }
-.mh-testimonial .owl-controls .owl-dots .owl-dot {
+.mh-client-reviews .owl-controls .owl-dots .owl-dot {
   height: 15px;
   width: 15px;
   border: 1px solid #0bceaf;
   display: inline-block;
   border-radius: 50%;
   margin-right: 10px; }
-.mh-testimonial .owl-controls .owl-dots .owl-dot.active {
+.mh-client-reviews .owl-controls .owl-dots .owl-dot.active {
   background-color: #0bceaf; }
 
 /*
@@ -2430,17 +2430,17 @@ body {
     text-align: left;
     margin-top: 10px;
     margin-bottom: 20px; }
-  .mh-featured-project .mh-featured-item .mh-featured-project-content .mh-testimonial blockquote {
+  .mh-featured-project .mh-featured-item .mh-featured-project-content .mh-client-reviews blockquote {
     padding: 0;
     margin: 0;
     margin-top: 30px; }
-    .mh-featured-project .mh-featured-item .mh-featured-project-content .mh-testimonial blockquote q {
+    .mh-featured-project .mh-featured-item .mh-featured-project-content .mh-client-reviews blockquote q {
       font-style: italic; }
-      .mh-featured-project .mh-featured-item .mh-featured-project-content .mh-testimonial blockquote q::before {
+      .mh-featured-project .mh-featured-item .mh-featured-project-content .mh-client-reviews blockquote q::before {
         content: open-quote; }
-      .mh-featured-project .mh-featured-item .mh-featured-project-content .mh-testimonial blockquote q::after {
+      .mh-featured-project .mh-featured-item .mh-featured-project-content .mh-client-reviews blockquote q::after {
         content: close-quote; }
-    .mh-featured-project .mh-featured-item .mh-featured-project-content .mh-testimonial blockquote cite {
+    .mh-featured-project .mh-featured-item .mh-featured-project-content .mh-client-reviews blockquote cite {
       display: block;
       font-size: 16px;
       font-style: normal;

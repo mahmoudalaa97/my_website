@@ -64,11 +64,11 @@
     .mh-blog .mh-blog-item h2 a:hover {
       color: #a370fd; }
 
-.mh-testimonial .mh-client-item img {
+.mh-client-reviews .mh-client-item img {
   border: 5px solid #a97afd; }
-.mh-testimonial .owl-controls .owl-dots .owl-dot {
+.mh-client-reviews .owl-controls .owl-dots .owl-dot {
   border: 1px solid #a97afd; }
-.mh-testimonial .owl-controls .owl-dots .owl-dot.active {
+.mh-client-reviews .owl-controls .owl-dots .owl-dot.active {
   background-color: #a97afd; }
 
 .mh-footer-address .mh-address-footer-item .each-icon .fa {
