@@ -2,9 +2,8 @@
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $message = $_POST['message'];
 
-  // Record all characters written and deleted
-  $writtenChars = $_POST['message'];
-  $deletedChars = $_POST['deleted_chars'];
+  // Get the name if provided
+  $name = isset($_POST['name']) ? $_POST['name'] : '';
 
   // Replace 'mahmoudadmob@gmail.com' with your actual email address
   $to = 'mahmoudadmob@gmail.com';
@@ -14,8 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
 
   // Create the final message to send
-  $finalMessage = "Written characters: $writtenChars\n\n";
-  $finalMessage .= "Deleted characters: $deletedChars\n\n";
+  $finalMessage = "Name: $name\n\n";
   $finalMessage .= "Message:\n$message";
 
   if (mail($to, $subject, $finalMessage, $headers)) {
