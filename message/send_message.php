@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // Replace 'mahmoudadmob@gmail.com' with your actual email address
   $to = 'message@mahmoudalaa.com';
   $subject = 'New Message';
-  $headers = "From: Your Website <noreply@message.mahmoudalaa.com>\r\n";
+  $headers = "From: Your Website $name <noreply@message.mahmoudalaa.com>\r\n";
   $headers .= "Reply-To: $to\r\n";
   $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
 
