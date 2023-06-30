@@ -19,9 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $finalMessage .= "Message:\n$message";
 
   if (mail($to, $subject, $finalMessage, $headers)) {
-    echo 'Message sent successfully!';
+    echo '<script>alert("Message sent successfully!"); window.location.href = "index.html";</script>';
+    exit;
   } else {
-    echo 'Oops! An error occurred while sending the message.';
+    echo '<script>alert("Oops! An error occurred while sending the message."); window.location.href = "index.html";</script>';
+    exit;
   }
 }
 ?>
