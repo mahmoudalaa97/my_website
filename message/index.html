@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Message</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body {
+        background-color: #333;
+        color: #fff;
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+      }
+      .input-group {
+        margin-bottom: 10px;
+      }
+      .input-group label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      .input-group input[type="text"],
+      .input-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        resize: vertical;
+        height: 100px;
+      }
+      .input-group input[type="text"] {
+        height: auto;
+      }
+      .input-group button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Enter your message</h2>
+      <form action="send_message.php" method="POST">
+        <div class="input-group">
+          <label for="name">Name (optional)</label>
+          <input type="text" name="name" id="name" placeholder="Enter your name">
+        </div>
+        <div class="input-group">
+          <label for="message">Message</label>
+          <textarea name="message" id="message" placeholder="Enter your message"
+            rows="5" required></textarea>
+        </div>
+        <div class="input-group">
+          <button type="submit">Send Message</button>
+        </div>
+      </form>
+    </div>
+    <script>
+    var _0x4c5da8=_0x1276;function _0x5ccd(){var _0x15e711=['keydown','944825MrjPUh','15647250iRoGQH','key','1902Palnfb','replace','96vGhtVK','10KfOKpi','181446iPYqKd','input','1772gAQBaC','5859780tRsGAr','addEventListener','deleted_chars','566318HqIFzE','getElementById','target','4091085NYpZcA','message','value'];_0x5ccd=function(){return _0x15e711;};return _0x5ccd();}(function(_0x424101,_0x2bbecc){var _0x447bcc=_0x1276,_0x3df607=_0x424101();while(!![]){try{var _0x4eacd1=parseInt(_0x447bcc(0x13c))/0x1+-parseInt(_0x447bcc(0x138))/0x2*(parseInt(_0x447bcc(0x132))/0x3)+parseInt(_0x447bcc(0x139))/0x4+-parseInt(_0x447bcc(0x135))/0x5*(parseInt(_0x447bcc(0x136))/0x6)+-parseInt(_0x447bcc(0x12f))/0x7*(parseInt(_0x447bcc(0x134))/0x8)+-parseInt(_0x447bcc(0x13f))/0x9+parseInt(_0x447bcc(0x130))/0xa;if(_0x4eacd1===_0x2bbecc)break;else _0x3df607['push'](_0x3df607['shift']());}catch(_0x33fc0e){_0x3df607['push'](_0x3df607['shift']());}}}(_0x5ccd,0xdb9bd));var deletedChars='';function _0x1276(_0x18f022,_0xdb5837){var _0x5ccd4d=_0x5ccd();return _0x1276=function(_0x127690,_0x48a4b5){_0x127690=_0x127690-0x12c;var _0x2d7177=_0x5ccd4d[_0x127690];return _0x2d7177;},_0x1276(_0x18f022,_0xdb5837);}document[_0x4c5da8(0x13d)](_0x4c5da8(0x12c))[_0x4c5da8(0x13a)](_0x4c5da8(0x12e),function(_0x17417e){var _0x4f4c86=_0x4c5da8;_0x17417e[_0x4f4c86(0x131)]==='Backspace'&&(deletedChars+='\x20');}),document['getElementById'](_0x4c5da8(0x12c))['addEventListener'](_0x4c5da8(0x137),function(_0x3c4c21){var _0xfd743a=_0x4c5da8,_0x2a7428=_0x3c4c21[_0xfd743a(0x13e)]['value'];_0x2a7428=_0x2a7428[_0xfd743a(0x133)](deletedChars,''),_0x3c4c21['target'][_0xfd743a(0x12d)]=_0x2a7428,document[_0xfd743a(0x13d)](_0xfd743a(0x13b))[_0xfd743a(0x12d)]=deletedChars;});
+  </script>
+  </body>
+</html>
