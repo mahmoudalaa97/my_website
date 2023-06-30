@@ -6,7 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $name = isset($_POST['name']) ? $_POST['name'] : '';
 
   // Replace 'mahmoudadmob@gmail.com' with your actual email address
-  $to = 'mahmoudadmob@gmail.com';
+  $to = 'message@mahmoudalaa.com';
   $subject = 'New Message';
   $headers = "From: Your Website <noreply@message.mahmoudalaa.com>\r\n";
   $headers .= "Reply-To: $to\r\n";
