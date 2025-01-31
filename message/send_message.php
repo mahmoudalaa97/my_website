@@ -2,8 +2,10 @@
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $message = $_POST['message'];
 
-  // Get the name if provided
+  // Get the name if provided and sanitize it
   $name = isset($_POST['name']) ? $_POST['name'] : '';
+  $name = str_replace(array("\r", "\n", "%0a", "%0d", "Content-Type:", "bcc:", "to:", "cc:"), '', $name);
+  $name = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
 
   // Replace 'mahmoudadmob@gmail.com' with your actual email address
   $to = 'message@mahmoudalaa.com';
