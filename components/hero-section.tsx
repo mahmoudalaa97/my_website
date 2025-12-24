@@ -1,0 +1,172 @@
+'use client'
+
+import Link from 'next/link'
+import { ArrowRight, Sparkles } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { TextEffect } from '@/components/ui/text-effect'
+import { AnimatedGroup } from '@/components/ui/animated-group'
+
+const transitionVariants = {
+    item: {
+        hidden: {
+            opacity: 0,
+            filter: 'blur(12px)',
+            y: 12,
+        },
+        visible: {
+            opacity: 1,
+            filter: 'blur(0px)',
+            y: 0,
+            transition: {
+                type: 'spring',
+                bounce: 0.3,
+                duration: 1.5,
+            },
+        },
+    },
+}
+
+export default function HeroSection() {
+    return (
+        <section id="home" className="relative min-h-screen overflow-hidden">
+            {/* Background Effects */}
+            <div
+                aria-hidden
+                className="absolute inset-0 -z-10">
+                {/* Gradient orbs */}
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+                {/* Grid pattern */}
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100px_100px]" />
+            </div>
+
+            <div className="relative pt-32 md:pt-40 pb-20">
+                <div className="mx-auto max-w-7xl px-6">
+                    <div className="text-center">
+                        {/* Badge */}
+                        <AnimatedGroup variants={transitionVariants}>
+                            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm text-primary mb-8">
+                                <Sparkles className="size-4" />
+                                <span>Digital Transformation Expert</span>
+                            </div>
+                        </AnimatedGroup>
+
+                        {/* Main Headline */}
+                        <div className="mx-auto max-w-5xl">
+                            <TextEffect
+                                preset="fade-in-blur"
+                                speedSegment={0.3}
+                                as="h1"
+                                className="text-balance text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+                                Transform Your Business
+                            </TextEffect>
+                            <TextEffect
+                                preset="fade-in-blur"
+                                speedSegment={0.3}
+                                delay={0.3}
+                                as="span"
+                                className="block text-gradient text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl mt-2">
+                                With Technology
+                            </TextEffect>
+                        </div>
+
+                        {/* Subheadline */}
+                        <TextEffect
+                            per="line"
+                            preset="fade-in-blur"
+                            speedSegment={0.3}
+                            delay={0.5}
+                            as="p"
+                            className="mx-auto mt-8 max-w-2xl text-balance text-lg text-muted-foreground md:text-xl">
+                            {"I help businesses solve complex problems through custom software solutions. From traditional processes to digital systems — let's modernize your operations together."}
+                        </TextEffect>
+
+                        {/* CTA Buttons */}
+                        <AnimatedGroup
+                            variants={{
+                                container: {
+                                    visible: {
+                                        transition: {
+                                            staggerChildren: 0.05,
+                                            delayChildren: 0.75,
+                                        },
+                                    },
+                                },
+                                ...transitionVariants,
+                            }}
+                            className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                            <Button
+                                asChild
+                                size="lg"
+                                className="rounded-full px-8 text-base glow group">
+                                <Link href="#portfolio">
+                                    <span>View My Work</span>
+                                    <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
+                                </Link>
+                            </Button>
+                            <Button
+                                asChild
+                                size="lg"
+                                variant="outline"
+                                className="rounded-full px-8 text-base border-primary/30 hover:bg-primary/10">
+                                <Link href="#contact">
+                                    <span>Get In Touch</span>
+                                </Link>
+                            </Button>
+                        </AnimatedGroup>
+
+                        {/* Stats */}
+                        <AnimatedGroup
+                            variants={{
+                                container: {
+                                    visible: {
+                                        transition: {
+                                            staggerChildren: 0.1,
+                                            delayChildren: 1,
+                                        },
+                                    },
+                                },
+                                ...transitionVariants,
+                            }}
+                            className="mt-20 grid grid-cols-2 gap-8 md:grid-cols-4 md:gap-12">
+                            {[
+                                { value: '5+', label: 'Years Experience' },
+                                { value: '50+', label: 'Projects Delivered' },
+                                { value: '30+', label: 'Happy Clients' },
+                                { value: '100%', label: 'Satisfaction Rate' },
+                            ].map((stat, index) => (
+                                <div key={index} className="text-center">
+                                    <div className="text-3xl font-bold text-gradient md:text-4xl">{stat.value}</div>
+                                    <div className="mt-1 text-sm text-muted-foreground">{stat.label}</div>
+                                </div>
+                            ))}
+                        </AnimatedGroup>
+                    </div>
+                </div>
+
+                {/* Floating Scroll Indicator */}
+                <AnimatedGroup
+                    variants={{
+                        container: {
+                            visible: {
+                                transition: {
+                                    delayChildren: 1.2,
+                                },
+                            },
+                        },
+                        ...transitionVariants,
+                    }}
+                    className="absolute bottom-10 left-1/2 -translate-x-1/2">
+                    <Link 
+                        href="#about"
+                        className="flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+                        <span className="text-sm">Scroll to explore</span>
+                        <div className="w-6 h-10 rounded-full border-2 border-current p-1">
+                            <div className="w-1.5 h-2.5 mx-auto rounded-full bg-current animate-bounce" />
+                        </div>
+                    </Link>
+                </AnimatedGroup>
+            </div>
+        </section>
+    )
+}
