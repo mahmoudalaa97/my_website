@@ -1,36 +1,186 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Website Monorepo
+
+A Turborepo monorepo containing a freelancer portfolio website with an admin dashboard and NestJS backend.
+
+## Project Structure
+
+```
+my_website/
+├── apps/
+│   ├── web/              # Public website (Next.js)
+│   ├── admin/            # Admin dashboard (Next.js)
+│   └── api/              # Backend API (NestJS)
+├── packages/
+│   ├── types/            # Shared TypeScript types
+│   ├── ui/               # Shared UI components
+│   └── config/           # Shared configs
+├── docker-compose.yml    # PostgreSQL & Redis
+├── turbo.json
+├── package.json
+└── pnpm-workspace.yaml
+```
+
+## Prerequisites
+
+- Node.js 18+
+- pnpm 9+
+- Docker & Docker Compose (for database)
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install Dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Start Database Services
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+docker-compose up -d
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This starts PostgreSQL (port 5432) and Redis (port 6379).
 
-## Learn More
+### 3. Configure Environment
 
-To learn more about Next.js, take a look at the following resources:
+Copy the example environment file for the API:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+cp apps/api/env.example.txt apps/api/.env
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Seed the Database
 
-## Deploy on Vercel
+```bash
+cd apps/api
+pnpm db:seed
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This creates:
+- Default admin user: `admin@example.com` / `admin123`
+- Default site settings
+- Sample services, packages, and projects
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 5. Start Development Servers
+
+From the root directory:
+
+```bash
+# Start all apps
+pnpm dev
+
+# Or start individually
+pnpm dev:web    # Public website on http://localhost:3000
+pnpm dev:admin  # Admin dashboard on http://localhost:3001
+pnpm dev:api    # API server on http://localhost:4000
+```
+
+## Apps
+
+### Public Website (apps/web)
+
+The freelancer portfolio website featuring:
+- Hero section with stats
+- About section
+- Services showcase
+- Portfolio/Projects gallery
+- Pricing packages
+- Contact form
+
+Runs on: `http://localhost:3000`
+
+### Admin Dashboard (apps/admin)
+
+Content management system for:
+- Site settings (name, tagline, social links, etc.)
+- Services management (CRUD)
+- Pricing packages management (CRUD)
+- Portfolio projects management (CRUD)
+- Contact form messages inbox
+
+Runs on: `http://localhost:3001`
+
+Default login: `admin@example.com` / `admin123`
+
+### API Backend (apps/api)
+
+NestJS backend providing:
+- Authentication (JWT + Sessions)
+- CRUD endpoints for all resources
+- PostgreSQL database with TypeORM
+- Redis support (for caching/sessions)
+
+Runs on: `http://localhost:4000`
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/auth/login | Admin login |
+| POST | /api/auth/logout | Admin logout |
+| GET | /api/auth/me | Get current admin |
+| GET | /api/auth/session | Check session |
+| GET/PUT | /api/settings | Site settings |
+| CRUD | /api/services | Services |
+| CRUD | /api/packages | Pricing packages |
+| CRUD | /api/projects | Portfolio projects |
+| GET/POST | /api/messages | Contact messages |
+
+## Environment Variables
+
+### API (.env)
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+DB_NAME=website_db
+REDIS_URL=redis://localhost:6379
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=7d
+SESSION_SECRET=your-session-secret
+WEB_URL=http://localhost:3000
+ADMIN_URL=http://localhost:3001
+PORT=4000
+NODE_ENV=development
+```
+
+### Web/Admin
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000/api
+```
+
+## Scripts
+
+```bash
+# Development
+pnpm dev          # Start all apps
+pnpm dev:web      # Start web only
+pnpm dev:admin    # Start admin only
+pnpm dev:api      # Start API only
+
+# Build
+pnpm build        # Build all apps
+
+# Database
+pnpm db:migrate   # Run migrations
+pnpm db:seed      # Seed database
+
+# Lint
+pnpm lint         # Lint all apps
+```
+
+## Tech Stack
+
+- **Frontend**: Next.js 16, React 19, Tailwind CSS v4, Motion
+- **Backend**: NestJS, TypeORM, PostgreSQL, Redis
+- **Monorepo**: Turborepo, pnpm workspaces
+- **Auth**: JWT + Sessions
+- **UI**: shadcn/ui components
+
+## License
+
+MIT
