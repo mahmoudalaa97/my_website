@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Admin, SiteSettings, Service, Package, Project } from './entities';
+import { Admin, AdminRole, AuditLog, SiteSettings, Service, Package, Project } from './entities';
 
 const dataSource = new DataSource({
   type: 'postgres',
@@ -10,7 +10,7 @@ const dataSource = new DataSource({
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'website_db',
-  entities: [Admin, SiteSettings, Service, Package, Project],
+  entities: [Admin, AuditLog, SiteSettings, Service, Package, Project],
   synchronize: true,
 });
 
@@ -18,18 +18,31 @@ async function seed() {
   await dataSource.initialize();
   console.log('Database connected');
 
-  // Create default admin
+  // Create default admin (use env vars or defaults)
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@admin.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'changeme123';
+  const adminName = process.env.ADMIN_NAME || 'Super Admin';
+
   const adminRepo = dataSource.getRepository(Admin);
-  const existingAdmin = await adminRepo.findOne({ where: { email: 'admin@example.com' } });
+  const existingAdmin = await adminRepo.findOne({ where: { email: adminEmail } });
   
   if (!existingAdmin) {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
     await adminRepo.save({
-      email: 'admin@example.com',
+      email: adminEmail,
       password: hashedPassword,
-      name: 'Admin',
+      name: adminName,
+      role: AdminRole.SUPER_ADMIN,
+      isActive: true,
     });
-    console.log('Default admin created: admin@example.com / admin123');
+    console.log(`Default super admin created: ${adminEmail} (password from env or default)`);
+    console.log('⚠️  IMPORTANT: Change the admin password immediately after first login!');
+  } else if (!existingAdmin.role) {
+    // Update existing admin to SUPER_ADMIN if role is not set
+    existingAdmin.role = AdminRole.SUPER_ADMIN;
+    existingAdmin.isActive = true;
+    await adminRepo.save(existingAdmin);
+    console.log('Existing admin upgraded to super admin');
   }
 
   // Create default settings
@@ -38,27 +51,23 @@ async function seed() {
   
   if (!existingSettings) {
     await settingsRepo.save({
-      siteName: 'YourName',
-      tagline: 'Digital Transformation Expert',
-      description: 'I help businesses digitize operations and solve problems with software.',
-      heroTitle: 'Transform Your Business With Technology',
-      heroSubtitle: 'I help businesses digitize operations, solve problems with software, and transition from traditional to systematic approaches.',
-      aboutTitle: 'About Me',
-      aboutDescription: 'With over 5 years of experience in software development and digital transformation, I help businesses modernize their operations and achieve their goals through technology.',
-      email: 'hello@example.com',
-      phone: '+1 234 567 890',
-      whatsapp: '+1234567890',
-      location: 'Remote / Worldwide',
-      socialLinks: {
-        linkedin: 'https://linkedin.com/in/yourname',
-        github: 'https://github.com/yourname',
-        twitter: 'https://twitter.com/yourname',
-      },
+      siteName: 'Your Business Name',
+      tagline: 'Your Tagline Here',
+      description: 'Describe your business and services here.',
+      heroTitle: 'Welcome to Our Website',
+      heroSubtitle: 'We help businesses achieve their goals through professional services and solutions.',
+      aboutTitle: 'About Us',
+      aboutDescription: 'Tell your story here. Describe your experience, expertise, and what makes you unique.',
+      email: '',
+      phone: '',
+      whatsapp: '',
+      location: '',
+      socialLinks: {},
       stats: [
-        { value: '5+', label: 'Years Experience' },
-        { value: '50+', label: 'Projects Completed' },
-        { value: '30+', label: 'Happy Clients' },
-        { value: '99%', label: 'Satisfaction Rate' },
+        { value: '10+', label: 'Years Experience' },
+        { value: '100+', label: 'Projects Completed' },
+        { value: '50+', label: 'Happy Clients' },
+        { value: '100%', label: 'Satisfaction Rate' },
       ],
     });
     console.log('Default settings created');

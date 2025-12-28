@@ -1,186 +1,184 @@
-# Website Monorepo
+# Website Template with Admin Dashboard
 
-A Turborepo monorepo containing a freelancer portfolio website with an admin dashboard and NestJS backend.
+A modern, full-stack website template with a powerful admin dashboard. Perfect for freelancers, agencies, and businesses who need a professional web presence with easy content management.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/YOUR_REPO)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/YOUR_TEMPLATE)
+
+## Features
+
+### Public Website
+- Modern, responsive design with dark theme
+- Dynamic branding (colors, fonts, logos)
+- SEO optimized with customizable meta tags
+- Smooth animations and transitions
+- Sections: Hero, About, Services, Portfolio, Pricing, Contact
+
+### Admin Dashboard
+- Full content management system
+- User management with role-based access control
+- Media library with image uploads
+- Real-time settings preview
+- Contact message management
+
+### Technical Features
+- **Monorepo** with Turborepo for efficient builds
+- **TypeScript** throughout for type safety
+- **PostgreSQL** database with TypeORM
+- **Redis** caching for performance
+- **JWT** and session-based authentication
+- **Docker** support for easy deployment
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend (Public) | Next.js 16, Tailwind CSS, Motion |
+| Frontend (Admin) | Next.js 16, Tailwind CSS, React Query |
+| Backend API | NestJS, TypeORM, PostgreSQL |
+| Caching | Redis |
+| Infrastructure | Docker, Docker Compose |
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 20+
+- pnpm 9+
+- Docker & Docker Compose (for database)
+
+### 1. Clone and Install
+
+```bash
+git clone <repository-url>
+cd <project-folder>
+pnpm install
+```
+
+### 2. Start Database
+
+```bash
+docker compose -f docker/docker-compose.dev.yml up -d
+```
+
+### 3. Configure Environment
+
+```bash
+cp apps/api/.env.example apps/api/.env
+# Edit .env with your settings
+```
+
+### 4. Run Migrations and Seed
+
+```bash
+pnpm db:migrate
+pnpm db:seed
+```
+
+### 5. Start Development Servers
+
+```bash
+pnpm dev:apps
+```
+
+Access:
+- **Website**: http://localhost:3000
+- **Admin**: http://localhost:3001
+- **API**: http://localhost:4000
+
+Default admin credentials are created during database seeding. Check the seed output for credentials.
 
 ## Project Structure
 
 ```
-my_website/
+website-template/
 ├── apps/
 │   ├── web/              # Public website (Next.js)
 │   ├── admin/            # Admin dashboard (Next.js)
 │   └── api/              # Backend API (NestJS)
 ├── packages/
-│   ├── types/            # Shared TypeScript types
 │   ├── ui/               # Shared UI components
-│   └── config/           # Shared configs
-├── docker-compose.yml    # PostgreSQL & Redis
-├── turbo.json
-├── package.json
-└── pnpm-workspace.yaml
+│   ├── types/            # Shared TypeScript types
+│   └── config/           # Shared configurations
+├── docker/               # Docker configurations
+│   ├── Dockerfile.api
+│   ├── Dockerfile.web
+│   ├── Dockerfile.admin
+│   ├── docker-compose.dev.yml
+│   └── docker-compose.prod.yml
+└── docs/                 # Documentation
 ```
 
-## Prerequisites
+## User Roles
 
-- Node.js 18+
-- pnpm 9+
-- Docker & Docker Compose (for database)
+| Role | Permissions |
+|------|-------------|
+| Super Admin | Full access, manage all users and settings |
+| Admin | Manage content and users (except Super Admins) |
+| Editor | Edit content (services, packages, projects) |
+| Viewer | Read-only dashboard access |
 
-## Getting Started
+## Customization
 
-### 1. Install Dependencies
+### Branding
 
-```bash
-pnpm install
-```
+All branding can be customized from the admin dashboard:
 
-### 2. Start Database Services
+- Logo (light/dark mode)
+- Favicon
+- Theme colors (primary, secondary, accent)
+- Typography (Google Fonts)
+- SEO settings
 
-```bash
-docker-compose up -d
-```
+### Content
 
-This starts PostgreSQL (port 5432) and Redis (port 6379).
+Manage all content from the admin:
 
-### 3. Configure Environment
-
-Copy the example environment file for the API:
-
-```bash
-cp apps/api/env.example.txt apps/api/.env
-```
-
-### 4. Seed the Database
-
-```bash
-cd apps/api
-pnpm db:seed
-```
-
-This creates:
-- Default admin user: `admin@example.com` / `admin123`
-- Default site settings
-- Sample services, packages, and projects
-
-### 5. Start Development Servers
-
-From the root directory:
-
-```bash
-# Start all apps
-pnpm dev
-
-# Or start individually
-pnpm dev:web    # Public website on http://localhost:3000
-pnpm dev:admin  # Admin dashboard on http://localhost:3001
-pnpm dev:api    # API server on http://localhost:4000
-```
-
-## Apps
-
-### Public Website (apps/web)
-
-The freelancer portfolio website featuring:
-- Hero section with stats
+- Hero section text and CTAs
 - About section
-- Services showcase
-- Portfolio/Projects gallery
+- Services with features
+- Portfolio projects
 - Pricing packages
-- Contact form
+- Contact information
+- Social media links
 
-Runs on: `http://localhost:3000`
+## Deployment
 
-### Admin Dashboard (apps/admin)
+See the [Deployment Guide](docs/DEPLOYMENT.md) for detailed instructions on:
 
-Content management system for:
-- Site settings (name, tagline, social links, etc.)
-- Services management (CRUD)
-- Pricing packages management (CRUD)
-- Portfolio projects management (CRUD)
-- Contact form messages inbox
+- Vercel (recommended for Next.js apps)
+- Railway (full-stack deployment)
+- VPS/Self-hosted with Docker
 
-Runs on: `http://localhost:3001`
+## Documentation
 
-Default login: `admin@example.com` / `admin123`
-
-### API Backend (apps/api)
-
-NestJS backend providing:
-- Authentication (JWT + Sessions)
-- CRUD endpoints for all resources
-- PostgreSQL database with TypeORM
-- Redis support (for caching/sessions)
-
-Runs on: `http://localhost:4000`
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /api/auth/login | Admin login |
-| POST | /api/auth/logout | Admin logout |
-| GET | /api/auth/me | Get current admin |
-| GET | /api/auth/session | Check session |
-| GET/PUT | /api/settings | Site settings |
-| CRUD | /api/services | Services |
-| CRUD | /api/packages | Pricing packages |
-| CRUD | /api/projects | Portfolio projects |
-| GET/POST | /api/messages | Contact messages |
-
-## Environment Variables
-
-### API (.env)
-
-```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=postgres
-DB_NAME=website_db
-REDIS_URL=redis://localhost:6379
-JWT_SECRET=your-secret-key
-JWT_EXPIRES_IN=7d
-SESSION_SECRET=your-session-secret
-WEB_URL=http://localhost:3000
-ADMIN_URL=http://localhost:3001
-PORT=4000
-NODE_ENV=development
-```
-
-### Web/Admin
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:4000/api
-```
+- [Installation Guide](docs/INSTALLATION.md)
+- [Deployment Guide](docs/DEPLOYMENT.md)
+- [Admin User Guide](docs/ADMIN_GUIDE.md)
+- [Environment Variables](docs/ENV_VARIABLES.md)
+- [API Reference](docs/API_REFERENCE.md)
 
 ## Scripts
 
-```bash
-# Development
-pnpm dev          # Start all apps
-pnpm dev:web      # Start web only
-pnpm dev:admin    # Start admin only
-pnpm dev:api      # Start API only
+| Script | Description |
+|--------|-------------|
+| `pnpm dev` | Start all apps in development mode |
+| `pnpm dev:web` | Start public website only |
+| `pnpm dev:admin` | Start admin dashboard only |
+| `pnpm dev:api` | Start API server only |
+| `pnpm build` | Build all apps |
+| `pnpm db:migrate` | Run database migrations |
+| `pnpm db:seed` | Seed database with initial data |
 
-# Build
-pnpm build        # Build all apps
+## Contributing
 
-# Database
-pnpm db:migrate   # Run migrations
-pnpm db:seed      # Seed database
-
-# Lint
-pnpm lint         # Lint all apps
-```
-
-## Tech Stack
-
-- **Frontend**: Next.js 16, React 19, Tailwind CSS v4, Motion
-- **Backend**: NestJS, TypeORM, PostgreSQL, Redis
-- **Monorepo**: Turborepo, pnpm workspaces
-- **Auth**: JWT + Sessions
-- **UI**: shadcn/ui components
+Contributions are welcome! Please read our contributing guidelines before submitting PRs.
 
 ## License
 
-MIT
+MIT License - see [LICENSE](LICENSE) for details.
+
+## Support
+
+- Documentation: [docs/](docs/)
+- Issues: Create an issue in this repository

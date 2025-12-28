@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { api } from "@/lib/api";
+import { ThemeProvider, Analytics, FontLoader } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,23 +14,51 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "YourName | Digital Transformation & Software Development",
-  description: "Expert freelance developer helping businesses solve complex problems through custom software solutions. Web apps, mobile apps, and digital transformation services.",
-  keywords: ["software developer", "freelancer", "web development", "mobile apps", "digital transformation", "custom software"],
-};
+// Dynamic metadata generation
+export async function generateMetadata(): Promise<Metadata> {
+  const branding = await api.getBranding();
+  
+  return {
+    title: {
+      default: branding?.seoTitle?.replace("%s", branding?.siteName || "Home") || "Website",
+      template: branding?.seoTitle || "%s",
+    },
+    description: branding?.seoDescription || "Professional services and solutions for your business.",
+    keywords: branding?.seoKeywords?.split(",").map(k => k.trim()) || [],
+    openGraph: {
+      title: branding?.siteName || "Website",
+      description: branding?.seoDescription || "",
+      images: branding?.ogImageUrl ? [branding.ogImageUrl] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: branding?.siteName || "Website",
+      description: branding?.seoDescription || "",
+      images: branding?.ogImageUrl ? [branding.ogImageUrl] : [],
+    },
+    icons: branding?.faviconUrl ? { icon: branding.faviconUrl } : undefined,
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const branding = await api.getBranding();
+
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="scroll-smooth dark">
+      <head>
+        <FontLoader branding={branding} />
+        <Analytics branding={branding} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider branding={branding}>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

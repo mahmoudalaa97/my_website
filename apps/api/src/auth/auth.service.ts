@@ -1,9 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Admin } from '../database/entities';
+import { Admin, AdminRole } from '../database/entities';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
@@ -20,6 +20,10 @@ export class AuthService {
       return null;
     }
 
+    if (!admin.password) {
+      return null; // User hasn't set password yet (invited but not accepted)
+    }
+
     const isPasswordValid = await bcrypt.compare(password, admin.password);
     if (!isPasswordValid) {
       return null;
@@ -34,13 +38,23 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { email: admin.email, sub: admin.id };
+    // Check if account is active
+    if (!admin.isActive) {
+      throw new ForbiddenException('Your account has been suspended. Please contact an administrator.');
+    }
+
+    // Update last login
+    admin.lastLoginAt = new Date();
+    await this.adminRepository.save(admin);
+
+    const payload = { email: admin.email, sub: admin.id, role: admin.role };
     return {
       accessToken: this.jwtService.sign(payload),
       admin: {
         id: admin.id,
         email: admin.email,
         name: admin.name,
+        role: admin.role,
       },
     };
   }
@@ -55,11 +69,13 @@ export class AuthService {
       id: admin.id,
       email: admin.email,
       name: admin.name,
+      role: admin.role,
+      lastLoginAt: admin.lastLoginAt,
       createdAt: admin.createdAt,
     };
   }
 
-  async createAdmin(email: string, password: string, name: string) {
+  async createAdmin(email: string, password: string, name: string, role: AdminRole = AdminRole.VIEWER) {
     const existingAdmin = await this.adminRepository.findOne({ where: { email } });
     if (existingAdmin) {
       throw new Error('Admin with this email already exists');
@@ -70,6 +86,8 @@ export class AuthService {
       email,
       password: hashedPassword,
       name,
+      role,
+      isActive: true,
     });
 
     return this.adminRepository.save(admin);

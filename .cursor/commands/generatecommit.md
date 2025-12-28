@@ -1,0 +1,1 @@
+i need to review all file in gitTree and generate the title and the details 

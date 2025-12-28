@@ -19,7 +19,7 @@ const transitionVariants = {
             filter: 'blur(0px)',
             y: 0,
             transition: {
-                type: 'spring',
+                type: 'spring' as const,
                 bounce: 0.3,
                 duration: 1.5,
             },
@@ -65,13 +65,7 @@ export default function HeroSection({ settings }: HeroSectionProps) {
             <div className="relative pt-32 md:pt-40 pb-20">
                 <div className="mx-auto max-w-7xl px-6">
                     <div className="text-center">
-                        {/* Badge */}
-                        <AnimatedGroup variants={transitionVariants}>
-                            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm text-primary mb-8">
-                                <Sparkles className="size-4" />
-                                <span>{tagline}</span>
-                            </div>
-                        </AnimatedGroup>
+
 
                         {/* Main Headline */}
                         <div className="mx-auto max-w-5xl">
@@ -160,29 +154,6 @@ export default function HeroSection({ settings }: HeroSectionProps) {
                         </AnimatedGroup>
                     </div>
                 </div>
-
-                {/* Floating Scroll Indicator */}
-                <AnimatedGroup
-                    variants={{
-                        container: {
-                            visible: {
-                                transition: {
-                                    delayChildren: 1.2,
-                                },
-                            },
-                        },
-                        ...transitionVariants,
-                    }}
-                    className="absolute bottom-10 left-1/2 -translate-x-1/2">
-                    <Link 
-                        href="#about"
-                        className="flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-                        <span className="text-sm">Scroll to explore</span>
-                        <div className="w-6 h-10 rounded-full border-2 border-current p-1">
-                            <div className="w-1.5 h-2.5 mx-auto rounded-full bg-current animate-bounce" />
-                        </div>
-                    </Link>
-                </AnimatedGroup>
             </div>
         </section>
     )

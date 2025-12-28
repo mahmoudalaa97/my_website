@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { toast } from "@/components/ui/toaster";
-import { Loader2, Mail, MailOpen, Archive, Trash2, ExternalLink } from "lucide-react";
+import { Loader2, Mail, MailOpen, Archive, Trash2, ExternalLink, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export default function MessagesPage() {
   const queryClient = useQueryClient();
+  const { canManageMessages } = usePermissions();
   const [showArchived, setShowArchived] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
 
@@ -71,6 +73,16 @@ export default function MessagesPage() {
 
   return (
     <div className="space-y-6">
+      {!canManageMessages && (
+        <Card className="border-yellow-500/50 bg-yellow-500/10">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-500">
+              <Eye className="h-5 w-5" />
+              <span>You have view-only access to messages. Contact an admin to archive or delete messages.</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
@@ -179,22 +191,26 @@ export default function MessagesPage() {
                   <p className="whitespace-pre-wrap">{selectedMessage.message}</p>
                 </div>
                 <div className="flex gap-2 pt-4 border-t">
-                  <Button
-                    variant="outline"
-                    onClick={() => archiveMutation.mutate(selectedMessage.id)}
-                    disabled={archiveMutation.isPending || selectedMessage.isArchived}
-                  >
-                    <Archive className="mr-2 h-4 w-4" />
-                    {selectedMessage.isArchived ? "Archived" : "Archive"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => deleteMutation.mutate(selectedMessage.id)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4 text-destructive" />
-                    Delete
-                  </Button>
+                  {canManageMessages && (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => archiveMutation.mutate(selectedMessage.id)}
+                        disabled={archiveMutation.isPending || selectedMessage.isArchived}
+                      >
+                        <Archive className="mr-2 h-4 w-4" />
+                        {selectedMessage.isArchived ? "Archived" : "Archive"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => deleteMutation.mutate(selectedMessage.id)}
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                        Delete
+                      </Button>
+                    </>
+                  )}
                   <Button asChild>
                     <a href={`mailto:${selectedMessage.email}`}>
                       Reply

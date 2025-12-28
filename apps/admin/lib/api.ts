@@ -27,10 +27,109 @@ async function fetchApi<T>(
   return response.json();
 }
 
+// Upload function without Content-Type header (browser sets it for FormData)
+async function uploadFile<T>(
+  endpoint: string,
+  file: File
+): Promise<ApiResponse<T>> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    method: "POST",
+    credentials: "include",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Upload failed" }));
+    throw new Error(error.message || "Upload failed");
+  }
+
+  return response.json();
+}
+
+export type AdminRole = 'super_admin' | 'admin' | 'editor' | 'viewer';
+
+export interface UploadedFile {
+  id: string;
+  filename: string;
+  originalname: string;
+  mimetype: string;
+  size: number;
+  url: string;
+  thumbnailUrl?: string;
+  folder?: string;
+  altText?: string;
+  createdAt?: string;
+}
+
+export interface MediaItem extends UploadedFile {
+  type: 'image' | 'document' | 'video';
+  provider: 'local' | 's3' | 'cloudinary';
+}
+
+export interface SiteSettings {
+  id: string;
+  siteName: string;
+  tagline: string;
+  description: string;
+  logoUrl: string;
+  logoDarkUrl: string;
+  faviconUrl: string;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  backgroundColor: string;
+  foregroundColor: string;
+  fontFamily: string;
+  fontHeading: string;
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
+  ogImageUrl: string;
+  googleAnalyticsId: string;
+  plausibleDomain: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  heroBadge: string;
+  heroCtaPrimary: string;
+  heroCtaSecondary: string;
+  aboutTitle: string;
+  aboutDescription: string;
+  aboutImageUrl: string;
+  email: string;
+  phone: string;
+  whatsapp: string;
+  location: string;
+  socialLinks: {
+    linkedin?: string;
+    github?: string;
+    twitter?: string;
+    instagram?: string;
+    youtube?: string;
+    facebook?: string;
+  };
+  stats: Array<{ value: string; label: string }>;
+  footerText: string;
+  copyrightText: string;
+  updatedAt: string;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: AdminRole;
+  isActive?: boolean;
+  lastLoginAt?: string;
+  createdAt?: string;
+}
+
 export const api = {
   // Auth
   login: (email: string, password: string) =>
-    fetchApi<{ accessToken: string; admin: { id: string; email: string; name: string } }>(
+    fetchApi<{ accessToken: string; admin: AdminUser }>(
       "/auth/login",
       {
         method: "POST",
@@ -39,16 +138,83 @@ export const api = {
     ),
   logout: () => fetchApi("/auth/logout", { method: "POST" }),
   getSession: () =>
-    fetchApi<{ isAuthenticated: boolean; admin?: { id: string; email: string; name: string } }>(
+    fetchApi<{ isAuthenticated: boolean; admin?: AdminUser }>(
       "/auth/session"
     ),
   getProfile: () =>
-    fetchApi<{ id: string; email: string; name: string }>("/auth/me"),
+    fetchApi<AdminUser>("/auth/me"),
+
+  // Profile
+  getCurrentProfile: () =>
+    fetchApi<AdminUser>("/profile"),
+  updateProfile: (data: { name?: string; email?: string }) =>
+    fetchApi<AdminUser>("/profile", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    fetchApi<{ message: string }>("/profile/password", {
+      method: "PUT",
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
+
+  // Users
+  getUsers: (role?: AdminRole) =>
+    fetchApi<AdminUser[]>(role ? `/users?role=${role}` : "/users"),
+  getUser: (id: string) => fetchApi<AdminUser>(`/users/${id}`),
+  createUser: (data: { name: string; email: string; password?: string; role: AdminRole }) =>
+    fetchApi<AdminUser>("/users", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  inviteUser: (data: { name: string; email: string; role: AdminRole }) =>
+    fetchApi<AdminUser & { inviteToken: string }>("/users/invite", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateUser: (id: string, data: { name?: string; email?: string; role?: AdminRole; isActive?: boolean }) =>
+    fetchApi<AdminUser>(`/users/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  suspendUser: (id: string) =>
+    fetchApi<{ message: string }>(`/users/${id}/suspend`, { method: "PUT" }),
+  activateUser: (id: string) =>
+    fetchApi<{ message: string }>(`/users/${id}/activate`, { method: "PUT" }),
+  resetUserPassword: (id: string, newPassword: string) =>
+    fetchApi<{ message: string }>(`/users/${id}/reset-password`, {
+      method: "PUT",
+      body: JSON.stringify({ newPassword }),
+    }),
+  deleteUser: (id: string) =>
+    fetchApi(`/users/${id}`, { method: "DELETE" }),
+  acceptInvite: (token: string, password: string) =>
+    fetchApi<{ message: string; email: string }>("/users/accept-invite", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
+    }),
+
+  // Upload / Media Library
+  uploadFile: (file: File, folder?: string) => {
+    const endpoint = folder ? `/upload?folder=${folder}` : "/upload";
+    return uploadFile<UploadedFile>(endpoint, file);
+  },
+  getMedia: (folder?: string) =>
+    fetchApi<MediaItem[]>(folder ? `/upload?folder=${folder}` : "/upload"),
+  getMediaFolders: () => fetchApi<string[]>("/upload/folders"),
+  updateMedia: (id: string, altText: string) =>
+    fetchApi<MediaItem>(`/upload/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ altText }),
+    }),
+  deleteMedia: (id: string) =>
+    fetchApi(`/upload/${id}`, { method: "DELETE" }),
 
   // Settings
-  getSettings: () => fetchApi<any>("/settings"),
-  updateSettings: (data: any) =>
-    fetchApi<any>("/settings", {
+  getSettings: () => fetchApi<SiteSettings>("/settings"),
+  getBranding: () => fetchApi<Partial<SiteSettings>>("/settings/branding"),
+  updateSettings: (data: Partial<SiteSettings>) =>
+    fetchApi<SiteSettings>("/settings", {
       method: "PUT",
       body: JSON.stringify(data),
     }),

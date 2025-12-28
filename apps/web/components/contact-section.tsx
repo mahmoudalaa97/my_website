@@ -25,8 +25,8 @@ export default function ContactSection({ settings }: ContactSectionProps) {
         {
             icon: Mail,
             label: 'Email',
-            value: settings?.email || 'hello@yourname.com',
-            href: settings?.email ? `mailto:${settings.email}` : 'mailto:hello@yourname.com',
+            value: settings?.email || 'contact@example.com',
+            href: settings?.email ? `mailto:${settings.email}` : 'mailto:contact@example.com',
         },
         {
             icon: Phone,

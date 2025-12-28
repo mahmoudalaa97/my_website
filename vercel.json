@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "name": "website-template",
+  "framework": "nextjs",
+  "buildCommand": "cd ../.. && pnpm install && pnpm build --filter=@repo/web",
+  "installCommand": "cd ../.. && pnpm install",
+  "outputDirectory": ".next",
+  "env": {
+    "NEXT_PUBLIC_API_URL": "@api_url"
+  }
+}
+

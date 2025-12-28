@@ -10,7 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { toast } from "@/components/ui/toaster";
-import { Loader2, Plus, Pencil, Trash2, X, Save, Star } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, X, Save, Star, Eye } from "lucide-react";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface PackageForm {
   id?: string;
@@ -35,6 +36,7 @@ const defaultForm: PackageForm = {
 
 export default function PackagesPage() {
   const queryClient = useQueryClient();
+  const { canEdit, canDelete, isViewer } = usePermissions();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<PackageForm>(defaultForm);
   const [featureInput, setFeatureInput] = useState("");
@@ -129,13 +131,25 @@ export default function PackagesPage() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{formData.id ? "Edit Package" : "Add New Package"}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
+      {isViewer && (
+        <Card className="border-yellow-500/50 bg-yellow-500/10">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-500">
+              <Eye className="h-5 w-5" />
+              <span>You have view-only access. Contact an admin to make changes.</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {canEdit && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{formData.id ? "Edit Package" : "Add New Package"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="name">Package Name</Label>
                 <Input
@@ -232,6 +246,7 @@ export default function PackagesPage() {
           </form>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -267,21 +282,27 @@ export default function PackagesPage() {
                   <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                     {pkg.description}
                   </p>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(pkg)}>
-                      <Pencil className="h-3 w-3 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => deleteMutation.mutate(pkg.id)}
-                      disabled={deleteMutation.isPending}
-                    >
-                      <Trash2 className="h-3 w-3 mr-1 text-destructive" />
-                      Delete
-                    </Button>
-                  </div>
+                  {(canEdit || canDelete) && (
+                    <div className="flex gap-2">
+                      {canEdit && (
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(pkg)}>
+                          <Pencil className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteMutation.mutate(pkg.id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className="h-3 w-3 mr-1 text-destructive" />
+                          Delete
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
               {packages?.data?.length === 0 && (

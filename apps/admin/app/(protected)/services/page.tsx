@@ -10,7 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { toast } from "@/components/ui/toaster";
-import { Loader2, Plus, Pencil, Trash2, X, Save } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, X, Save, Eye } from "lucide-react";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface ServiceForm {
   id?: string;
@@ -31,6 +32,7 @@ const defaultForm: ServiceForm = {
 
 export default function ServicesPage() {
   const queryClient = useQueryClient();
+  const { canEdit, canDelete, isViewer } = usePermissions();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<ServiceForm>(defaultForm);
   const [featureInput, setFeatureInput] = useState("");
@@ -123,12 +125,24 @@ export default function ServicesPage() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{formData.id ? "Edit Service" : "Add New Service"}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+      {isViewer && (
+        <Card className="border-yellow-500/50 bg-yellow-500/10">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-500">
+              <Eye className="h-5 w-5" />
+              <span>You have view-only access. Contact an admin to make changes.</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {canEdit && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{formData.id ? "Edit Service" : "Add New Service"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="title">Title</Label>
@@ -207,6 +221,7 @@ export default function ServicesPage() {
           </form>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -235,19 +250,25 @@ export default function ServicesPage() {
                       {service.description}
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => handleEdit(service)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteMutation.mutate(service.id)}
-                      disabled={deleteMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
+                  {(canEdit || canDelete) && (
+                    <div className="flex gap-2">
+                      {canEdit && (
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(service)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteMutation.mutate(service.id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
               {services?.data?.length === 0 && (

@@ -25,24 +25,60 @@ async function fetchApi<T>(endpoint: string): Promise<T | null> {
 }
 
 export interface SiteSettings {
+  id: string;
   siteName: string;
   tagline: string;
   description: string;
+  // Branding
+  logoUrl: string;
+  logoDarkUrl: string;
+  faviconUrl: string;
+  // Theme Colors
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  backgroundColor: string;
+  foregroundColor: string;
+  // Typography
+  fontFamily: string;
+  fontHeading: string;
+  // SEO
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
+  ogImageUrl: string;
+  // Analytics
+  googleAnalyticsId: string;
+  plausibleDomain: string;
+  // Hero
   heroTitle: string;
   heroSubtitle: string;
+  heroBadge: string;
+  heroCtaPrimary: string;
+  heroCtaSecondary: string;
+  // About
   aboutTitle: string;
   aboutDescription: string;
+  aboutImageUrl: string;
+  // Contact
   email: string;
   phone: string;
   whatsapp: string;
   location: string;
+  // Social
   socialLinks: {
     linkedin?: string;
     github?: string;
     twitter?: string;
     instagram?: string;
+    youtube?: string;
+    facebook?: string;
   };
+  // Stats
   stats: Array<{ value: string; label: string }>;
+  // Footer
+  footerText: string;
+  copyrightText: string;
 }
 
 export interface Service {
@@ -74,8 +110,29 @@ export interface Project {
   isFeatured: boolean;
 }
 
+export interface Branding {
+  siteName: string;
+  logoUrl: string;
+  logoDarkUrl: string;
+  faviconUrl: string;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  backgroundColor: string;
+  foregroundColor: string;
+  fontFamily: string;
+  fontHeading: string;
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
+  ogImageUrl: string;
+  googleAnalyticsId: string;
+  plausibleDomain: string;
+}
+
 export const api = {
   getSettings: () => fetchApi<SiteSettings>("/settings"),
+  getBranding: () => fetchApi<Branding>("/settings/branding"),
   getServices: () => fetchApi<Service[]>("/services"),
   getPackages: () => fetchApi<Package[]>("/packages"),
   getProjects: () => fetchApi<Project[]>("/projects"),

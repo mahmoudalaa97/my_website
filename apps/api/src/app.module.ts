@@ -7,6 +7,11 @@ import { PackagesModule } from './packages/packages.module';
 import { ProjectsModule } from './projects/projects.module';
 import { SettingsModule } from './settings/settings.module';
 import { MessagesModule } from './messages/messages.module';
+import { ProfileModule } from './profile/profile.module';
+import { UsersModule } from './users/users.module';
+import { EmailModule } from './email/email.module';
+import { UploadModule } from './upload/upload.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -36,6 +41,11 @@ import { MessagesModule } from './messages/messages.module';
     ProjectsModule,
     SettingsModule,
     MessagesModule,
+    ProfileModule,
+    UsersModule,
+    EmailModule,
+    UploadModule,
+    HealthModule,
   ],
 })
 export class AppModule {}

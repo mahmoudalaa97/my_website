@@ -17,6 +17,14 @@ class SocialLinksDto {
   @IsString()
   @IsOptional()
   instagram?: string;
+
+  @IsString()
+  @IsOptional()
+  youtube?: string;
+
+  @IsString()
+  @IsOptional()
+  facebook?: string;
 }
 
 class StatDto {
@@ -30,6 +38,11 @@ class StatDto {
 export class UpdateSettingsDto {
   @IsString()
   @IsOptional()
+  id?: string;
+
+  // Basic Info
+  @IsString()
+  @IsOptional()
   siteName?: string;
 
   @IsString()
@@ -40,6 +53,76 @@ export class UpdateSettingsDto {
   @IsOptional()
   description?: string;
 
+  // Branding
+  @IsString()
+  @IsOptional()
+  logoUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  logoDarkUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  faviconUrl?: string;
+
+  // Theme Colors
+  @IsString()
+  @IsOptional()
+  primaryColor?: string;
+
+  @IsString()
+  @IsOptional()
+  secondaryColor?: string;
+
+  @IsString()
+  @IsOptional()
+  accentColor?: string;
+
+  @IsString()
+  @IsOptional()
+  backgroundColor?: string;
+
+  @IsString()
+  @IsOptional()
+  foregroundColor?: string;
+
+  // Typography
+  @IsString()
+  @IsOptional()
+  fontFamily?: string;
+
+  @IsString()
+  @IsOptional()
+  fontHeading?: string;
+
+  // SEO
+  @IsString()
+  @IsOptional()
+  seoTitle?: string;
+
+  @IsString()
+  @IsOptional()
+  seoDescription?: string;
+
+  @IsString()
+  @IsOptional()
+  seoKeywords?: string;
+
+  @IsString()
+  @IsOptional()
+  ogImageUrl?: string;
+
+  // Analytics
+  @IsString()
+  @IsOptional()
+  googleAnalyticsId?: string;
+
+  @IsString()
+  @IsOptional()
+  plausibleDomain?: string;
+
+  // Hero Section
   @IsString()
   @IsOptional()
   heroTitle?: string;
@@ -50,12 +133,30 @@ export class UpdateSettingsDto {
 
   @IsString()
   @IsOptional()
+  heroBadge?: string;
+
+  @IsString()
+  @IsOptional()
+  heroCtaPrimary?: string;
+
+  @IsString()
+  @IsOptional()
+  heroCtaSecondary?: string;
+
+  // About Section
+  @IsString()
+  @IsOptional()
   aboutTitle?: string;
 
   @IsString()
   @IsOptional()
   aboutDescription?: string;
 
+  @IsString()
+  @IsOptional()
+  aboutImageUrl?: string;
+
+  // Contact Info
   @IsString()
   @IsOptional()
   email?: string;
@@ -72,16 +173,31 @@ export class UpdateSettingsDto {
   @IsOptional()
   location?: string;
 
+  // Social Links
   @IsObject()
   @IsOptional()
   @ValidateNested()
   @Type(() => SocialLinksDto)
   socialLinks?: SocialLinksDto;
 
+  // Stats
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => StatDto)
   stats?: StatDto[];
+
+  // Footer
+  @IsString()
+  @IsOptional()
+  footerText?: string;
+
+  @IsString()
+  @IsOptional()
+  copyrightText?: string;
+
+  @IsString()
+  @IsOptional()
+  updatedAt?: string;
 }
 

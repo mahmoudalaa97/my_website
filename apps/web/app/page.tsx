@@ -21,7 +21,7 @@ export default async function Home() {
 
   return (
     <>
-      <HeroHeader />
+      <HeroHeader settings={settings} />
       <main>
         <HeroSection settings={settings} />
         <AboutSection settings={settings} />

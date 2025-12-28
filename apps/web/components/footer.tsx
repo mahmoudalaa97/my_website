@@ -9,8 +9,8 @@ interface FooterProps {
 }
 
 export default function Footer({ settings }: FooterProps) {
-    const siteName = settings?.siteName || 'YourName'
-    const email = settings?.email || 'hello@yourname.com'
+    const siteName = settings?.siteName || 'Your Business'
+    const email = settings?.email || 'contact@example.com'
     
     const footerLinks = [
         {

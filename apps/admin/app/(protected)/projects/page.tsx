@@ -10,7 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { toast } from "@/components/ui/toaster";
-import { Loader2, Plus, Pencil, Trash2, X, Save, Star, ExternalLink } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, X, Save, Star, ExternalLink, Eye } from "lucide-react";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface ProjectForm {
   id?: string;
@@ -37,6 +38,7 @@ const defaultForm: ProjectForm = {
 
 export default function ProjectsPage() {
   const queryClient = useQueryClient();
+  const { canEdit, canDelete, isViewer } = usePermissions();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<ProjectForm>(defaultForm);
   const [tagInput, setTagInput] = useState("");
@@ -132,15 +134,27 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{formData.id ? "Edit Project" : "Add New Project"}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="title">Project Title</Label>
+      {isViewer && (
+        <Card className="border-yellow-500/50 bg-yellow-500/10">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-500">
+              <Eye className="h-5 w-5" />
+              <span>You have view-only access. Contact an admin to make changes.</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {canEdit && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{formData.id ? "Edit Project" : "Add New Project"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Project Title</Label>
                 <Input
                   id="title"
                   value={formData.title}
@@ -245,6 +259,7 @@ export default function ProjectsPage() {
           </form>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -293,10 +308,12 @@ export default function ProjectsPage() {
                       )}
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => handleEdit(project)}>
-                        <Pencil className="h-3 w-3 mr-1" />
-                        Edit
-                      </Button>
+                      {canEdit && (
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(project)}>
+                          <Pencil className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                      )}
                       {project.liveUrl && (
                         <Button variant="outline" size="sm" asChild>
                           <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
@@ -305,14 +322,16 @@ export default function ProjectsPage() {
                           </a>
                         </Button>
                       )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deleteMutation.mutate(project.id)}
-                        disabled={deleteMutation.isPending}
-                      >
-                        <Trash2 className="h-3 w-3 text-destructive" />
-                      </Button>
+                      {canDelete && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteMutation.mutate(project.id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

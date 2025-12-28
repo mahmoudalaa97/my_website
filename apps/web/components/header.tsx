@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Code2, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import React from 'react'
@@ -14,7 +15,17 @@ const menuItems = [
     { name: 'Contact', href: '#contact' },
 ]
 
-export const HeroHeader = () => {
+interface Settings {
+    siteName?: string
+    logoUrl?: string
+    logoDarkUrl?: string
+}
+
+interface HeroHeaderProps {
+    settings?: Settings | null
+}
+
+export const HeroHeader = ({ settings }: HeroHeaderProps) => {
     const [menuState, setMenuState] = React.useState(false)
     const [isScrolled, setIsScrolled] = React.useState(false)
 
@@ -51,10 +62,22 @@ export const HeroHeader = () => {
                                 onClick={(e) => handleNavClick(e, '#home')}
                                 aria-label="home"
                                 className="flex items-center space-x-2">
-                                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                                    <Code2 className="size-5 text-primary" />
-                                </div>
-                                <span className="text-lg font-bold">YourName</span>
+                                {settings?.logoDarkUrl ? (
+                                    <Image
+                                        src={settings.logoDarkUrl}
+                                        alt={settings?.siteName || 'Logo'}
+                                        width={120}
+                                        height={40}
+                                        className="h-9 w-auto"
+                                    />
+                                ) : (
+                                    <>
+                                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                                            <Code2 className="size-5 text-primary" />
+                                        </div>
+                                        <span className="text-lg font-bold">{settings?.siteName || 'Your Business'}</span>
+                                    </>
+                                )}
                             </Link>
 
                             <button
