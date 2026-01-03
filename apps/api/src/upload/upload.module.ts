@@ -44,5 +44,5 @@ import { AuthModule } from '../auth/auth.module';
   providers: [UploadService],
   exports: [UploadService],
 })
-export class UploadModule {}
+export class UploadModule { }
 

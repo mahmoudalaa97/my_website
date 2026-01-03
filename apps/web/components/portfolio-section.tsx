@@ -87,7 +87,7 @@ export default function PortfolioSection({ projects }: PortfolioSectionProps) {
                         <span className="text-gradient"> An Impact</span>
                     </h2>
                     <p className="mt-6 text-lg text-muted-foreground">
-                        A showcase of solutions I&apos;ve built for clients across various industries. 
+                        A showcase of solutions I&apos;ve built for clients across various industries.
                         Each project represents a unique challenge transformed into success.
                     </p>
                 </motion.div>
@@ -101,13 +101,12 @@ export default function PortfolioSection({ projects }: PortfolioSectionProps) {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: index * 0.1 }}
-                            className={`group relative rounded-2xl border border-border bg-card overflow-hidden ${
-                                project.isFeatured ? 'md:col-span-2 lg:col-span-1' : ''
-                            }`}
+                            className={`group relative rounded-2xl border border-border bg-card overflow-hidden ${project.isFeatured ? 'md:col-span-2 lg:col-span-1' : ''
+                                }`}
                         >
                             {/* Project Image Placeholder */}
                             <div className="aspect-video bg-gradient-to-br from-primary/20 via-purple-500/10 to-background relative overflow-hidden">
-                                {project.imageUrl ? (
+                                {/* {project.imageUrl? (
                                     <img 
                                         src={project.imageUrl} 
                                         alt={project.title}
@@ -119,11 +118,11 @@ export default function PortfolioSection({ projects }: PortfolioSectionProps) {
                                             {project.title.charAt(0)}
                                         </div>
                                     </div>
-                                )}
+                                )} */}
                                 {/* Hover overlay */}
                                 <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
                                     {project.liveUrl && (
-                                        <Link 
+                                        <Link
                                             href={project.liveUrl}
                                             target="_blank"
                                             className="p-3 rounded-full bg-primary text-primary-foreground hover:scale-110 transition-transform"
@@ -132,7 +131,7 @@ export default function PortfolioSection({ projects }: PortfolioSectionProps) {
                                         </Link>
                                     )}
                                     {project.githubUrl && (
-                                        <Link 
+                                        <Link
                                             href={project.githubUrl}
                                             target="_blank"
                                             className="p-3 rounded-full bg-secondary text-secondary-foreground hover:scale-110 transition-transform"
@@ -160,7 +159,7 @@ export default function PortfolioSection({ projects }: PortfolioSectionProps) {
                                 {/* Tags */}
                                 <div className="flex flex-wrap gap-2">
                                     {project.tags.map((tag, i) => (
-                                        <span 
+                                        <span
                                             key={i}
                                             className="px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground text-xs"
                                         >

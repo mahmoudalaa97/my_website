@@ -25,7 +25,7 @@ import { AdminRole, MediaType } from '../database/entities';
 @Controller('upload')
 @UseGuards(JwtAuthGuard)
 export class UploadController {
-  constructor(private readonly uploadService: UploadService) {}
+  constructor(private readonly uploadService: UploadService) { }
 
   // Get all media - All authenticated users
   @Get()
@@ -74,7 +74,7 @@ export class UploadController {
   @Roles(AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.EDITOR)
   @UseInterceptors(FilesInterceptor('files', 10))
   async uploadMultiple(
-    @UploadedFiles() files: Express.Multer.Files,
+    @UploadedFiles() files: Express.Multer.File[],
     @Query('folder') folder: string = 'general',
     @CurrentAdmin() admin: { id: string },
   ) {
