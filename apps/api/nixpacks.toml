@@ -8,4 +8,4 @@ cmds = ["npm install -g corepack@0.24.1 && corepack enable", "pnpm install"]
 cmds = ["pnpm run build"]
 
 [phases.start]
-cmd = "pnpm run start"
+cmd = "cd apps/api && pnpm run start"
