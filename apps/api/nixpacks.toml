@@ -2,10 +2,10 @@
 nixPkgs = ["nodejs_20", "pnpm"]
 
 [phases.install]
-cmds = ["npm install -g corepack@0.24.1 && corepack enable", "pnpm install --filter=@repo/api"]
+cmds = ["npm install -g corepack@0.24.1 && corepack enable", "pnpm i --frozen-lockfile"]
 
 [phases.build]
-cmds = ["pnpm run build --filter=@repo/api"]
+cmds = ["pnpm run build"]
 
 [phases.start]
-cmd = "pnpm start --filter=@repo/api"
+cmd = "pnpm run start"
