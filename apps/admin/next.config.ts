@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
-  transpilePackages: ["@repo/types", "@repo/ui"],
+  output: process.env.NODE_ENV === "production" ? "standalone" : undefined,
   images: {
     remotePatterns: [
       {
@@ -11,11 +10,13 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "http",
-        hostname: "localhost",
+        hostname: "72.62.31.233",
+        port: "4000",
       },
     ],
   },
+  // Transpile workspace packages
+  transpilePackages: ["@repo/ui", "@repo/types"],
 };
 
 export default nextConfig;
-
