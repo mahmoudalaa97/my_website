@@ -2,10 +2,10 @@
 nixPkgs = ["nodejs_20", "pnpm"]
 
 [phases.install]
-cmds = ["npm install -g corepack@0.24.1 && corepack enable", "pnpm install"]
+cmds = ["npm install -g corepack@0.24.1 && corepack enable", "pnpm install --filter=@repo/admin"]
 
 [phases.build]
-cmds = ["pnpm run build"]
+cmds = ["pnpm run build --filter=@repo/admin"]
 
 [phases.start]
-cmd = "pnpm run start"
+cmd = "pnpm start --filter=@repo/admin"
