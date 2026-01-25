@@ -58,10 +58,10 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
       SMTP_FROM: ${SMTP_FROM}
-      FRONTEND_URL: ${ADMIN_URL:-http://localhost:3001}
-      WEB_URL: ${WEB_URL:-http://localhost:3000}
-      ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
-      API_URL: ${API_URL:-http://localhost:4000}
+      FRONTEND_URL: ${ADMIN_URL:-https://dashboard.mahmoudalaa.com}
+      WEB_URL: ${WEB_URL:-https://demo.mahmoudalaa.com}
+      ADMIN_URL: ${ADMIN_URL:-https://dashboard.mahmoudalaa.com}
+      API_URL: ${API_URL:-https://api.mahmoudalaa.com}
     volumes:
       - uploads_data:/app/uploads
     ports:
@@ -78,12 +78,12 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.web
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000/api}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.mahmoudalaa.com}
     container_name: website_web
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://api:4000/api}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.mahmoudalaa.com}
     ports:
       - "${WEB_PORT:-3000}:3000"
     depends_on:
@@ -95,12 +95,12 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.admin
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000/api}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.mahmoudalaa.com}
     container_name: website_admin
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://api:4000/api}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.mahmoudalaa.com}
     ports:
       - "${ADMIN_PORT:-3001}:3001"
     depends_on:
