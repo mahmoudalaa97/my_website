@@ -30,6 +30,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 COPY . .
 
+# Build packages first
+RUN pnpm --filter @repo/types build || true
+RUN pnpm --filter @repo/ui build || true
+
 # Build the admin app
 WORKDIR /app/apps/admin
 
