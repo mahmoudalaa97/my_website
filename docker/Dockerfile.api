@@ -40,6 +40,7 @@ FROM base AS production
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV TURBO_CACHE_DIR=/tmp/.turbo
 
 # Install pnpm for running migrations/seeds
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
@@ -63,9 +64,9 @@ COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
 # Copy API application
 COPY --from=builder --chown=nodejs:nodejs /app/apps/api ./apps/api
 
-# Create directories with proper permissions
-RUN mkdir -p apps/api/uploads .turbo/cache && \
-    chown -R nodejs:nodejs apps/api/uploads .turbo
+# Create directories with proper permissions (including turbo cache in /tmp)
+RUN mkdir -p apps/api/uploads /tmp/.turbo/cache && \
+    chown -R nodejs:nodejs apps/api/uploads /tmp/.turbo
 
 USER nodejs
 

@@ -32,6 +32,7 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4000
+      TURBO_CACHE_DIR: /tmp/.turbo
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-my_website}
       # Database connection (for migrations/seeds)
       DB_HOST: postgres
