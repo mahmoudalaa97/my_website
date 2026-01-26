@@ -52,6 +52,7 @@ RUN addgroup -g 1001 -S nodejs && \
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nodejs:nodejs /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder --chown=nodejs:nodejs /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder --chown=nodejs:nodejs /app/turbo.json ./turbo.json
 
 # Copy all node_modules (includes all workspace dependencies)
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
@@ -62,8 +63,9 @@ COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
 # Copy API application
 COPY --from=builder --chown=nodejs:nodejs /app/apps/api ./apps/api
 
-# Create uploads directory with proper permissions
-RUN mkdir -p apps/api/uploads && chown -R nodejs:nodejs apps/api/uploads
+# Create directories with proper permissions
+RUN mkdir -p apps/api/uploads .turbo/cache && \
+    chown -R nodejs:nodejs apps/api/uploads .turbo
 
 USER nodejs
 
