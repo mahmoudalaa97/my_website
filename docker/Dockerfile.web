@@ -26,23 +26,27 @@ WORKDIR /app
 # Install pnpm in builder stage
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
+# Copy root configuration files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+
+# Copy node_modules and packages from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
-COPY . .
+
+# Copy only the web app source code
+COPY apps/web ./apps/web
 
 # Build packages first
 RUN pnpm --filter @repo/types build || true
 RUN pnpm --filter @repo/ui build || true
 RUN pnpm --filter @repo/config build || true
 
-# Build the web app
-WORKDIR /app/apps/web
-
 # Environment variables for build
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-RUN pnpm build
+# Build the web app
+RUN pnpm --filter @repo/web build
 
 # Production stage
 FROM base AS production

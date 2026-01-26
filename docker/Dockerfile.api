@@ -32,7 +32,7 @@ RUN pnpm --filter @repo/types build || true
 RUN pnpm --filter @repo/config build || true
 
 # Build the API
-RUN pnpm --filter api build
+RUN pnpm --filter @repo/api build
 
 # Production stage
 FROM base AS production
