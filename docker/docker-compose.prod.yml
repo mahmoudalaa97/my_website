@@ -4,6 +4,8 @@ services:
     image: postgres:16-alpine
     container_name: my_website_postgres_prod
     restart: always
+    ports:
+      - "http://72.62.31.233/:5432:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
