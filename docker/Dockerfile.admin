@@ -36,6 +36,10 @@ COPY --from=deps /app/packages ./packages
 # Copy only the admin app source code
 COPY apps/admin ./apps/admin
 
+# Remove any problematic symlinks or directories
+RUN find ./apps/admin -type l -name "sites-available" -delete 2>/dev/null || true
+RUN rm -rf ./apps/admin/sites-available 2>/dev/null || true
+
 # Build packages first
 RUN pnpm --filter @repo/types build || true
 RUN pnpm --filter @repo/ui build || true
