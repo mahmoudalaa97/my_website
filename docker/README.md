@@ -106,6 +106,71 @@ docker-compose -f docker-compose.dev.yml logs -f api
 
 ## Database Management
 
+### Using the Database Manager Script
+
+The easiest way to manage migrations and seeding:
+
+```bash
+cd docker
+
+# Run migrations
+./db-manager.sh migrate
+
+# Seed the database
+./db-manager.sh seed
+
+# Run both migrations and seed
+./db-manager.sh reset
+
+# Check migration status
+./db-manager.sh status
+
+# Open PostgreSQL shell
+./db-manager.sh shell
+
+# Create backup
+./db-manager.sh backup
+
+# Restore from backup
+./db-manager.sh restore
+```
+
+### Manual Database Commands
+
+#### Run Migrations
+
+Development:
+
+```bash
+docker exec -it my_website_api_dev sh -c "cd /app && pnpm db:migrate"
+```
+
+Production:
+
+```bash
+docker exec -it my_website_api_prod sh -c "cd /app && pnpm db:migrate"
+```
+
+#### Seed Database
+
+Development:
+
+```bash
+docker exec -it my_website_api_dev sh -c "cd /app && pnpm db:seed"
+```
+
+Production:
+
+```bash
+docker exec -it my_website_api_prod sh -c "cd /app && pnpm db:seed"
+```
+
+#### Revert Last Migration
+
+```bash
+docker exec -it my_website_api_dev sh -c "cd /app && pnpm db:migrate:revert"
+```
+
 ### Access PostgreSQL
 
 ```bash
