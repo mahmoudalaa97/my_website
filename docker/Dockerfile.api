@@ -9,6 +9,9 @@ FROM base AS builder
 
 WORKDIR /app
 
+# Install pnpm in builder stage
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
 # Copy root package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
