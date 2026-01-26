@@ -1,5 +1,5 @@
 # Web Dockerfile (Next.js Public Website)
-FROM node:v24.8.0 AS base
+FROM node:24.8.0 AS base
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
