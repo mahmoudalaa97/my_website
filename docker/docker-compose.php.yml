@@ -1,0 +1,55 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: my_website_mysql_dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: my_website
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data_dev:/var/lib/mysql
+    networks:
+      - my_website_php_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api-php:
+    build:
+      context: .
+      dockerfile: Dockerfile.api-php
+    container_name: my_website_api_php_dev
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../apps/api-php:/app
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: my_website
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      ADMIN_EMAIL: admin@admin.com
+      ADMIN_PASSWORD: Admin123!
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - my_website_php_network
+
+networks:
+  my_website_php_network:
+    driver: bridge
+
+volumes:
+  mysql_data_dev:
+    driver: local
