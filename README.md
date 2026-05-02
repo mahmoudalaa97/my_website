@@ -144,11 +144,14 @@ Manage all content from the admin:
 
 ## Deployment
 
-See the [Deployment Guide](docs/DEPLOYMENT.md) for detailed instructions on:
+Each app deploys independently — see **[DEPLOY.md](DEPLOY.md)**.
 
-- Vercel (recommended for Next.js apps)
-- Railway (full-stack deployment)
-- VPS/Self-hosted with Docker
+- `apps/web` → Vercel
+- `apps/admin` → Vercel
+- `apps/api` → Railway
+- Postgres → Neon / Railway / Supabase
+
+Push to `main` and each platform redeploys only the app that changed.
 
 ## Documentation
 
