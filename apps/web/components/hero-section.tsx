@@ -132,7 +132,7 @@ export default function HeroSection({ settings }: HeroSectionProps) {
                         </AnimatedGroup>
 
                         {/* Stats */}
-                        <AnimatedGroup
+                        {/* <AnimatedGroup
                             variants={{
                                 container: {
                                     visible: {
@@ -151,7 +151,7 @@ export default function HeroSection({ settings }: HeroSectionProps) {
                                     <div className="mt-1 text-sm text-muted-foreground">{stat.label}</div>
                                 </div>
                             ))}
-                        </AnimatedGroup>
+                        </AnimatedGroup> */}
                     </div>
                 </div>
             </div>

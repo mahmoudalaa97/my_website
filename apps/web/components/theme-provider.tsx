@@ -106,7 +106,7 @@ export function FontLoader({ branding }: { branding: Branding | null }) {
 
   const fonts = new Set([branding.fontFamily, branding.fontHeading]);
   const fontFamilies = Array.from(fonts)
-    .map((font) => font.replace(/ /g, "+"))
+    .map((font) => font?.replace(/ /g, "+"))
     .join("&family=");
 
   if (!fontFamilies) return null;

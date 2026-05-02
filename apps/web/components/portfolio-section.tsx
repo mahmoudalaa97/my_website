@@ -6,64 +6,15 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import type { Project } from '@/lib/api'
 
-const defaultProjects = [
-    {
-        title: 'E-Commerce Platform',
-        description: 'A full-featured online store with inventory management, payment processing, and analytics dashboard.',
-        tags: ['Next.js', 'Node.js', 'PostgreSQL', 'Stripe'],
-        liveUrl: '#',
-        githubUrl: '#',
-        isFeatured: true,
-    },
-    {
-        title: 'Healthcare Management System',
-        description: "Digital transformation of a clinic's operations including appointments, patient records, and billing.",
-        tags: ['React', 'Express', 'MongoDB', 'AWS'],
-        liveUrl: '#',
-        githubUrl: '#',
-        isFeatured: true,
-    },
-    {
-        title: 'Inventory Tracking App',
-        description: 'Mobile application for real-time inventory management with barcode scanning and alerts.',
-        tags: ['React Native', 'Firebase', 'Node.js'],
-        liveUrl: '#',
-        githubUrl: '#',
-        isFeatured: false,
-    },
-    {
-        title: 'Restaurant POS System',
-        description: 'Complete point-of-sale solution with order management, kitchen display, and reporting.',
-        tags: ['Vue.js', 'Python', 'PostgreSQL'],
-        liveUrl: '#',
-        githubUrl: '#',
-        isFeatured: false,
-    },
-    {
-        title: 'Real Estate Portal',
-        description: 'Property listing platform with advanced search, virtual tours, and CRM integration.',
-        tags: ['Next.js', 'Prisma', 'Tailwind CSS'],
-        liveUrl: '#',
-        githubUrl: '#',
-        isFeatured: false,
-    },
-    {
-        title: 'Fleet Management Dashboard',
-        description: 'GPS tracking and fleet analytics platform for logistics companies.',
-        tags: ['React', 'Node.js', 'Socket.io', 'Maps API'],
-        liveUrl: '#',
-        githubUrl: '#',
-        isFeatured: false,
-    },
-]
+
 
 interface PortfolioSectionProps {
     projects?: Project[] | null
 }
 
 export default function PortfolioSection({ projects }: PortfolioSectionProps) {
-    const displayProjects = projects?.length ? projects : defaultProjects
-
+    const displayProjects =  projects || []
+ if (displayProjects.length === 0) return null;
     return (
         <section id="portfolio" className="relative py-24 md:py-32 bg-card/30">
             {/* Background */}
