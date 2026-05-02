@@ -6,6 +6,27 @@ interface ApiResponse<T> {
   message?: string;
 }
 
+const toCamel = (s: string) => s.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
+const toSnake = (s: string) => s.replace(/([A-Z])/g, "_$1").toLowerCase();
+
+function deepTransformKeys(value: unknown, transform: (key: string) => string): unknown {
+  if (Array.isArray(value)) {
+    return value.map((v) => deepTransformKeys(v, transform));
+  }
+  if (value && typeof value === "object" && (value as object).constructor === Object) {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([k, v]) => [
+        transform(k),
+        deepTransformKeys(v, transform),
+      ])
+    );
+  }
+  return value;
+}
+
+const keysToCamel = <T = unknown>(value: unknown) => deepTransformKeys(value, toCamel) as T;
+const keysToSnake = <T = unknown>(value: unknown) => deepTransformKeys(value, toSnake) as T;
+
 async function fetchApi<T>(endpoint: string): Promise<T | null> {
   try {
     const response = await fetch(`${API_URL}${endpoint}`, {
@@ -16,8 +37,8 @@ async function fetchApi<T>(endpoint: string): Promise<T | null> {
       return null;
     }
 
-    const json: ApiResponse<T> = await response.json();
-    return json.data || null;
+    const json: ApiResponse<unknown> = await response.json();
+    return json.data ? keysToCamel<T>(json.data) : null;
   } catch (error) {
     console.error(`API Error (${endpoint}):`, error);
     return null;
@@ -147,7 +168,7 @@ export const api = {
     const response = await fetch(`${API_URL}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(keysToSnake(data)),
     });
     return response.json();
   },

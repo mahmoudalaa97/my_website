@@ -6,6 +6,27 @@ interface ApiResponse<T> {
   message?: string;
 }
 
+const toCamel = (s: string) => s.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
+const toSnake = (s: string) => s.replace(/([A-Z])/g, "_$1").toLowerCase();
+
+function deepTransformKeys(value: unknown, transform: (key: string) => string): unknown {
+  if (Array.isArray(value)) {
+    return value.map((v) => deepTransformKeys(v, transform));
+  }
+  if (value && typeof value === "object" && (value as object).constructor === Object) {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([k, v]) => [
+        transform(k),
+        deepTransformKeys(v, transform),
+      ])
+    );
+  }
+  return value;
+}
+
+const keysToCamel = <T = unknown>(value: unknown) => deepTransformKeys(value, toCamel) as T;
+const keysToSnake = <T = unknown>(value: unknown) => deepTransformKeys(value, toSnake) as T;
+
 async function fetchApi<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -155,7 +176,7 @@ export const api = {
   changePassword: (currentPassword: string, newPassword: string) =>
     fetchApi<{ message: string }>("/profile/password", {
       method: "PUT",
-      body: JSON.stringify({ currentPassword, newPassword }),
+      body: JSON.stringify(keysToSnake({ currentPassword, newPassword })),
     }),
 
   // Users
@@ -184,7 +205,7 @@ export const api = {
   resetUserPassword: (id: string, newPassword: string) =>
     fetchApi<{ message: string }>(`/users/${id}/reset-password`, {
       method: "PUT",
-      body: JSON.stringify({ newPassword }),
+      body: JSON.stringify({ password: newPassword }),
     }),
   deleteUser: (id: string) =>
     fetchApi(`/users/${id}`, { method: "DELETE" }),
@@ -211,13 +232,24 @@ export const api = {
     fetchApi(`/upload/${id}`, { method: "DELETE" }),
 
   // Settings
-  getSettings: () => fetchApi<SiteSettings>("/settings"),
-  getBranding: () => fetchApi<Partial<SiteSettings>>("/settings/branding"),
-  updateSettings: (data: Partial<SiteSettings>) =>
-    fetchApi<SiteSettings>("/settings", {
+  getSettings: async () => {
+    const res = await fetchApi<SiteSettings>("/settings");
+    return { ...res, data: res.data ? keysToCamel<SiteSettings>(res.data) : res.data };
+  },
+  getBranding: async () => {
+    const res = await fetchApi<Partial<SiteSettings>>("/settings/branding");
+    return {
+      ...res,
+      data: res.data ? keysToCamel<Partial<SiteSettings>>(res.data) : res.data,
+    };
+  },
+  updateSettings: async (data: Partial<SiteSettings>) => {
+    const res = await fetchApi<SiteSettings>("/settings", {
       method: "PUT",
-      body: JSON.stringify(data),
-    }),
+      body: JSON.stringify(keysToSnake(data)),
+    });
+    return { ...res, data: res.data ? keysToCamel<SiteSettings>(res.data) : res.data };
+  },
 
   // Services
   getServices: (includeInactive = true) =>
