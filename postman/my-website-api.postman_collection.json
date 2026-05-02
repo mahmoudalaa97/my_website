@@ -1,0 +1,879 @@
+{
+  "info": {
+    "name": "my_website API",
+    "description": "End-to-end test collection for the Laravel API powering the web and admin frontends. Run top-to-bottom; each folder builds on the previous one (login captures the bearer token; CRUD folders capture and clean up their own resources).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000/api" },
+    { "key": "email", "value": "admin@admin.com" },
+    { "key": "password", "value": "Admin123!" },
+    { "key": "token", "value": "" },
+    { "key": "svcId", "value": "" },
+    { "key": "pkgId", "value": "" },
+    { "key": "prjId", "value": "" },
+    { "key": "msgId", "value": "" },
+    { "key": "userId", "value": "" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Suppress bearer auth on requests that should be unauthenticated (set 'noAuth' header in those requests).",
+          "if (pm.request.headers.get('X-Skip-Auth')) {",
+          "  pm.request.auth = { type: 'noauth' };",
+          "  pm.request.headers.remove('X-Skip-Auth');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));",
+              "const j = pm.response.json();",
+              "pm.test('status:ok', () => pm.expect(j.status).to.eql('ok'));"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /health/live",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/health/live", "host": ["{{baseUrl}}"], "path": ["health", "live"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /health/ready",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/health/ready", "host": ["{{baseUrl}}"], "path": ["health", "ready"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Public reads",
+      "item": [
+        {
+          "name": "GET /settings",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/settings", "host": ["{{baseUrl}}"], "path": ["settings"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));",
+              "const j = pm.response.json();",
+              "pm.test('success', () => pm.expect(j.success).to.eql(true));",
+              "pm.test('data.site_name present', () => pm.expect(j.data.site_name).to.be.a('string'));"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /settings/branding",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/settings/branding", "host": ["{{baseUrl}}"], "path": ["settings", "branding"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));",
+              "const j = pm.response.json();",
+              "pm.test('primary_color is hex', () => pm.expect(j.data.primary_color).to.match(/^#[0-9a-f]{3,8}$/i));"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /services",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/services", "host": ["{{baseUrl}}"], "path": ["services"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));",
+              "const j = pm.response.json();",
+              "pm.test('data is array', () => pm.expect(j.data).to.be.an('array'));"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /packages",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/packages", "host": ["{{baseUrl}}"], "path": ["packages"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('data is array', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /projects",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/projects", "host": ["{{baseUrl}}"], "path": ["projects"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('data is array', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /projects/featured",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/projects/featured", "host": ["{{baseUrl}}"], "path": ["projects", "featured"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Auth — negative",
+      "item": [
+        {
+          "name": "POST /auth/login (wrong password)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"definitely-wrong\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('401 or 422', () => pm.expect([401, 422]).to.include(pm.response.code));",
+              "pm.test('success:false', () => pm.expect(pm.response.json().success).to.eql(false));"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /auth/me (no token)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('401', () => pm.expect(pm.response.code).to.eql(401));"
+            ]}
+          }]
+        },
+        {
+          "name": "PUT /settings (no token)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"tagline\":\"x\"}" },
+            "url": { "raw": "{{baseUrl}}/settings", "host": ["{{baseUrl}}"], "path": ["settings"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('401', () => pm.expect(pm.response.code).to.eql(401));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Auth — login",
+      "item": [
+        {
+          "name": "POST /auth/login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));",
+              "const j = pm.response.json();",
+              "pm.test('success', () => pm.expect(j.success).to.eql(true));",
+              "pm.test('accessToken present', () => pm.expect(j.data.accessToken).to.be.a('string').and.not.empty);",
+              "pm.collectionVariables.set('token', j.data.accessToken);"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /auth/me (with token)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('email matches', () => pm.expect(pm.response.json().data.email).to.eql(pm.collectionVariables.get('email')));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "GET /profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/profile", "host": ["{{baseUrl}}"], "path": ["profile"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "PUT /profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Super Admin\"\n}" },
+            "url": { "raw": "{{baseUrl}}/profile", "host": ["{{baseUrl}}"], "path": ["profile"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "PUT /settings (happy path)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"tagline\": \"Postman E2E Tagline\",\n  \"primary_color\": \"#0ea5e9\",\n  \"logo_url\": \"\"\n}" },
+            "url": { "raw": "{{baseUrl}}/settings", "host": ["{{baseUrl}}"], "path": ["settings"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('tagline persisted', () => pm.expect(pm.response.json().data.tagline).to.eql('Postman E2E Tagline'));"
+            ]}
+          }]
+        },
+        {
+          "name": "PUT /settings (over-long → friendly error)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"\n}" },
+            "url": { "raw": "{{baseUrl}}/settings", "host": ["{{baseUrl}}"], "path": ["settings"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('500', () => pm.expect(pm.response.code).to.eql(500));",
+              "const j = pm.response.json();",
+              "pm.test('success:false', () => pm.expect(j.success).to.eql(false));",
+              "pm.test('friendly message', () => pm.expect(j.message.toLowerCase()).to.include('too long'));",
+              "pm.test('no SQL leak in message', () => pm.expect(j.message.toLowerCase()).to.not.include('sqlstate'));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Services CRUD",
+      "item": [
+        {
+          "name": "POST /services",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Postman Service\",\n  \"description\": \"created by postman test\",\n  \"icon\": \"Code\",\n  \"features\": [\"a\", \"b\"]\n}" },
+            "url": { "raw": "{{baseUrl}}/services", "host": ["{{baseUrl}}"], "path": ["services"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200/201', () => pm.expect([200, 201]).to.include(pm.response.code));",
+              "const j = pm.response.json();",
+              "pm.test('id present', () => pm.expect(j.data.id).to.be.a('string'));",
+              "pm.collectionVariables.set('svcId', j.data.id);"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /services/{id}",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/services/{{svcId}}", "host": ["{{baseUrl}}"], "path": ["services", "{{svcId}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "PUT /services/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Postman Service Updated\"\n}" },
+            "url": { "raw": "{{baseUrl}}/services/{{svcId}}", "host": ["{{baseUrl}}"], "path": ["services", "{{svcId}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('title updated', () => pm.expect(pm.response.json().data.title).to.eql('Postman Service Updated'));"
+            ]}
+          }]
+        },
+        {
+          "name": "DELETE /services/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/services/{{svcId}}", "host": ["{{baseUrl}}"], "path": ["services", "{{svcId}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200/204', () => pm.expect([200, 204]).to.include(pm.response.code));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Packages CRUD",
+      "item": [
+        {
+          "name": "POST /packages",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Pkg\",\n  \"description\": \"x\",\n  \"price\": \"$1\",\n  \"price_note\": \"one-time\",\n  \"features\": [\"x\"]\n}" },
+            "url": { "raw": "{{baseUrl}}/packages", "host": ["{{baseUrl}}"], "path": ["packages"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200/201', () => pm.expect([200, 201]).to.include(pm.response.code));",
+              "pm.collectionVariables.set('pkgId', pm.response.json().data.id);"
+            ]}
+          }]
+        },
+        {
+          "name": "PUT /packages/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Pkg Updated\"\n}" },
+            "url": { "raw": "{{baseUrl}}/packages/{{pkgId}}", "host": ["{{baseUrl}}"], "path": ["packages", "{{pkgId}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "DELETE /packages/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/packages/{{pkgId}}", "host": ["{{baseUrl}}"], "path": ["packages", "{{pkgId}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200/204', () => pm.expect([200, 204]).to.include(pm.response.code));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Projects CRUD",
+      "item": [
+        {
+          "name": "POST /projects",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Postman Project\",\n  \"description\": \"x\",\n  \"tags\": [\"t\"],\n  \"is_featured\": false\n}" },
+            "url": { "raw": "{{baseUrl}}/projects", "host": ["{{baseUrl}}"], "path": ["projects"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200/201', () => pm.expect([200, 201]).to.include(pm.response.code));",
+              "pm.collectionVariables.set('prjId', pm.response.json().data.id);"
+            ]}
+          }]
+        },
+        {
+          "name": "PUT /projects/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Postman Project Updated\"\n}" },
+            "url": { "raw": "{{baseUrl}}/projects/{{prjId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{prjId}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "DELETE /projects/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/projects/{{prjId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{prjId}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200/204', () => pm.expect([200, 204]).to.include(pm.response.code));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "POST /messages (anonymous)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman\",\n  \"email\": \"postman@example.com\",\n  \"message\": \"hello from postman test\"\n}" },
+            "url": { "raw": "{{baseUrl}}/messages", "host": ["{{baseUrl}}"], "path": ["messages"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200/201', () => pm.expect([200, 201]).to.include(pm.response.code));",
+              "pm.collectionVariables.set('msgId', pm.response.json().data.id);"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /messages",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/messages", "host": ["{{baseUrl}}"], "path": ["messages"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /messages/stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/messages/stats", "host": ["{{baseUrl}}"], "path": ["messages", "stats"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "PATCH /messages/{id}/read",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/messages/{{msgId}}/read", "host": ["{{baseUrl}}"], "path": ["messages", "{{msgId}}", "read"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "PATCH /messages/{id}/archive",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/messages/{{msgId}}/archive", "host": ["{{baseUrl}}"], "path": ["messages", "{{msgId}}", "archive"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "PATCH /messages/{id}/unarchive",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/messages/{{msgId}}/unarchive", "host": ["{{baseUrl}}"], "path": ["messages", "{{msgId}}", "unarchive"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "DELETE /messages/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/messages/{{msgId}}", "host": ["{{baseUrl}}"], "path": ["messages", "{{msgId}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200/204', () => pm.expect([200, 204]).to.include(pm.response.code));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Users CRUD",
+      "item": [
+        {
+          "name": "GET /users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('data is array', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+            ]}
+          }]
+        },
+        {
+          "name": "POST /users",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman User\",\n  \"email\": \"postman-{{$timestamp}}@example.com\",\n  \"password\": \"Test1234!\",\n  \"role\": \"editor\"\n}" },
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200/201', () => pm.expect([200, 201]).to.include(pm.response.code));",
+              "pm.collectionVariables.set('userId', pm.response.json().data.id);"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /users/{id}",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "PUT /users/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman User Updated\"\n}" },
+            "url": { "raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "PUT /users/{id}/suspend",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/users/{{userId}}/suspend", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "suspend"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "PUT /users/{id}/activate",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/users/{{userId}}/activate", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "activate"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "PUT /users/{id}/reset-password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"password\": \"Newpass123!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/users/{{userId}}/reset-password", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "reset-password"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "DELETE /users/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200/204', () => pm.expect([200, 204]).to.include(pm.response.code));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Upload (listing)",
+      "item": [
+        {
+          "name": "GET /upload",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/upload", "host": ["{{baseUrl}}"], "path": ["upload"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        },
+        {
+          "name": "GET /upload/folders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/upload/folders", "host": ["{{baseUrl}}"], "path": ["upload", "folders"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "404 handling",
+      "item": [
+        {
+          "name": "GET /no-such-path",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/no-such-path", "host": ["{{baseUrl}}"], "path": ["no-such-path"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('404', () => pm.expect(pm.response.code).to.eql(404));",
+              "pm.test('json error envelope', () => pm.expect(pm.response.json().success).to.eql(false));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Auth — logout",
+      "item": [
+        {
+          "name": "POST /auth/logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200', () => pm.expect(pm.response.code).to.eql(200));"
+            ]}
+          }]
+        }
+      ]
+    }
+  ]
+}
