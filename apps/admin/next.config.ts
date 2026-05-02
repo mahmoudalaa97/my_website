@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
         hostname: "72.62.31.233",
         port: "4000",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8000",
+      }, 
     ],
   },
   // Transpile workspace packages
