@@ -7,15 +7,15 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "turbo dev --concurrency 10",
-    "dev:apps": "turbo dev --filter=@repo/web --filter=@repo/admin --filter=@repo/api --concurrency 10",
+    "dev": "./dev.sh",
+    "dev:apps": "turbo dev --filter=@repo/web --filter=@repo/admin --concurrency 10",
     "build": "turbo build",
     "lint": "turbo lint",
     "dev:web": "turbo dev --filter=@repo/web",
     "dev:admin": "turbo dev --filter=@repo/admin",
-    "dev:api": "turbo dev --filter=@repo/api",
-    "db:migrate": "turbo db:migrate --filter=@repo/api",
-    "db:seed": "turbo db:seed --filter=@repo/api"
+    "dev:api": "cd apps/api-php && php artisan serve --port=8000",
+    "db:migrate": "cd apps/api-php && php artisan migrate",
+    "db:seed": "cd apps/api-php && php artisan db:seed"
   },
   "devDependencies": {
     "turbo": "^2.3.0"

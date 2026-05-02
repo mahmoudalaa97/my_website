@@ -11,9 +11,10 @@ module.exports = {
       args: "run start --workspace=@repo/admin",
     },
     {
-      name: "api",
-      script: "npm",
-      args: "run start --workspace=@repo/api",
-    }
-  ]
-}
+      name: "api-php",
+      cwd: "apps/api-php",
+      script: "php",
+      args: "artisan serve --host=0.0.0.0 --port=8000",
+    },
+  ],
+};
