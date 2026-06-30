@@ -1,0 +1,119 @@
+name: Deploy Web (Next.js)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - "turbo.json"
+      - ".github/workflows/deploy-web.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+
+    env:
+      APP_NAME: web
+      APP_DIR: apps/web
+      REMOTE_DIR: ${{ secrets.HOSTINGER_WEB_DIR }}
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+
+      - name: Install dependencies (frozen)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web (standalone)
+        run: pnpm --filter @repo/web build
+
+      - name: Stage deploy artifact
+        run: |
+          set -euo pipefail
+          OUT="dist/${APP_NAME}"
+          rm -rf "$OUT" && mkdir -p "$OUT"
+          cp -R "${APP_DIR}/.next/standalone/." "$OUT/"
+          mkdir -p "$OUT/${APP_DIR}/.next"
+          cp -R "${APP_DIR}/.next/static" "$OUT/${APP_DIR}/.next/static"
+          if [ -d "${APP_DIR}/public" ]; then
+            cp -R "${APP_DIR}/public" "$OUT/${APP_DIR}/public"
+          fi
+          printf "require('./%s/server.js');\n" "${APP_DIR}" > "$OUT/server.js"
+          cat > "$OUT/package.json" <<'JSON'
+          {
+            "name": "web-hostinger",
+            "private": true,
+            "version": "1.0.0",
+            "scripts": { "start": "node server.js" },
+            "engines": { "node": ">=20" }
+          }
+          JSON
+          du -sh "$OUT"
+
+      - name: Setup SSH
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.HOSTINGER_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          if [ -n "${{ secrets.HOSTINGER_KNOWN_HOSTS }}" ]; then
+            printf '%s\n' "${{ secrets.HOSTINGER_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${{ secrets.HOSTINGER_PORT }}" -H "${{ secrets.HOSTINGER_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+          fi
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Rsync to Hostinger
+        run: |
+          set -euo pipefail
+          [ -n "$REMOTE_DIR" ] || { echo "::error::HOSTINGER_WEB_DIR secret is empty"; exit 1; }
+          rsync -az --delete --human-readable \
+            -e "ssh -p ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/id_ed25519" \
+            "dist/${APP_NAME}/" \
+            "${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:${REMOTE_DIR}/"
+
+      - name: Restart Passenger
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/id_ed25519 \
+            "${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}" \
+            "mkdir -p '${REMOTE_DIR}/tmp' && touch '${REMOTE_DIR}/tmp/restart.txt'"
+
+      - name: Health check
+        run: |
+          set -euo pipefail
+          if [ -n "${{ secrets.WEB_HEALTH_URL }}" ]; then
+            for i in 1 2 3 4 5 6 7 8; do
+              code=$(curl -sS -o /dev/null -w "%{http_code}" "${{ secrets.WEB_HEALTH_URL }}" || true)
+              echo "attempt $i: $code"
+              [ "$code" = "200" ] && exit 0
+              sleep 5
+            done
+            echo "::error::web health check failed"
+            exit 1
+          else
+            echo "WEB_HEALTH_URL not set — skipping health check"
+          fi

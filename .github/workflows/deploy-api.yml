@@ -1,0 +1,120 @@
+name: Deploy API (Laravel)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api-php/**"
+      - ".github/workflows/deploy-api.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+
+    env:
+      APP_DIR: apps/api-php
+      REMOTE_DIR: ${{ secrets.HOSTINGER_API_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, intl, pdo_mysql, bcmath, fileinfo, openssl, tokenizer, xml, ctype, json, curl
+          coverage: none
+          tools: composer:v2
+
+      - name: Composer cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: composer-${{ hashFiles('apps/api-php/composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install production dependencies
+        working-directory: ${{ env.APP_DIR }}
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      - name: Stage deploy artifact
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          rsync -a --delete \
+            --exclude='.env' \
+            --exclude='.env.local' \
+            --exclude='.env.backup' \
+            --exclude='node_modules/' \
+            --exclude='public/storage' \
+            --exclude='public/build' \
+            --exclude='storage/framework/cache/data/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='storage/logs/*' \
+            --exclude='tests/' \
+            --exclude='.phpunit.cache/' \
+            --exclude='.git*' \
+            "${APP_DIR}/" dist/api/
+          # Ship the prod env template so first-time setup has a reference.
+          cp "${APP_DIR}/.env.production.example" dist/api/.env.production.example
+          du -sh dist/api
+
+      - name: Setup SSH
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.HOSTINGER_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          # Pin the host key once via secret to avoid TOFU; fall back to scan.
+          if [ -n "${{ secrets.HOSTINGER_KNOWN_HOSTS }}" ]; then
+            printf '%s\n' "${{ secrets.HOSTINGER_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${{ secrets.HOSTINGER_PORT }}" -H "${{ secrets.HOSTINGER_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+          fi
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Rsync to Hostinger
+        run: |
+          set -euo pipefail
+          [ -n "$REMOTE_DIR" ] || { echo "::error::HOSTINGER_API_DIR secret is empty"; exit 1; }
+          rsync -az --delete --human-readable \
+            -e "ssh -p ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/id_ed25519" \
+            dist/api/ \
+            "${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:${REMOTE_DIR}/"
+
+      - name: Run post-deploy (migrate + caches)
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/id_ed25519 \
+            "${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}" \
+            "cd '${REMOTE_DIR}' && \
+             php artisan migrate --force && \
+             php artisan storage:link 2>/dev/null || true && \
+             php artisan config:cache && \
+             php artisan route:cache && \
+             php artisan view:cache"
+
+      - name: Health check
+        run: |
+          set -euo pipefail
+          if [ -n "${{ secrets.API_HEALTH_URL }}" ]; then
+            for i in 1 2 3 4 5; do
+              code=$(curl -sS -o /dev/null -w "%{http_code}" "${{ secrets.API_HEALTH_URL }}")
+              echo "attempt $i: $code"
+              [ "$code" = "200" ] && exit 0
+              sleep 3
+            done
+            echo "::error::health check failed after 5 tries"
+            exit 1
+          else
+            echo "API_HEALTH_URL not set — skipping health check"
+          fi

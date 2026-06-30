@@ -1,0 +1,126 @@
+name: Deploy Admin (Next.js)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/admin/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - "turbo.json"
+      - ".github/workflows/deploy-admin.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-admin
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+
+    env:
+      APP_NAME: admin
+      APP_DIR: apps/admin
+      REMOTE_DIR: ${{ secrets.HOSTINGER_ADMIN_DIR }}
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+
+      - name: Install dependencies (frozen)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build admin (standalone)
+        run: pnpm --filter @repo/admin build
+
+      - name: Stage deploy artifact
+        run: |
+          set -euo pipefail
+          OUT="dist/${APP_NAME}"
+          rm -rf "$OUT" && mkdir -p "$OUT"
+          # Standalone bundle is rooted at the monorepo root because of
+          # outputFileTracingRoot — copy it as-is, then layer in the static
+          # assets and public/ that standalone leaves out by design.
+          cp -R "${APP_DIR}/.next/standalone/." "$OUT/"
+          mkdir -p "$OUT/${APP_DIR}/.next"
+          cp -R "${APP_DIR}/.next/static" "$OUT/${APP_DIR}/.next/static"
+          if [ -d "${APP_DIR}/public" ]; then
+            cp -R "${APP_DIR}/public" "$OUT/${APP_DIR}/public"
+          fi
+          # Top-level server.js shim — Hostinger's "Application startup file"
+          # always points at server.js regardless of the monorepo path inside.
+          printf "require('./%s/server.js');\n" "${APP_DIR}" > "$OUT/server.js"
+          # Minimal package.json so Passenger sees a Node engine.
+          cat > "$OUT/package.json" <<'JSON'
+          {
+            "name": "admin-hostinger",
+            "private": true,
+            "version": "1.0.0",
+            "scripts": { "start": "node server.js" },
+            "engines": { "node": ">=20" }
+          }
+          JSON
+          du -sh "$OUT"
+
+      - name: Setup SSH
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.HOSTINGER_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          if [ -n "${{ secrets.HOSTINGER_KNOWN_HOSTS }}" ]; then
+            printf '%s\n' "${{ secrets.HOSTINGER_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${{ secrets.HOSTINGER_PORT }}" -H "${{ secrets.HOSTINGER_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+          fi
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Rsync to Hostinger
+        run: |
+          set -euo pipefail
+          [ -n "$REMOTE_DIR" ] || { echo "::error::HOSTINGER_ADMIN_DIR secret is empty"; exit 1; }
+          rsync -az --delete --human-readable \
+            -e "ssh -p ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/id_ed25519" \
+            "dist/${APP_NAME}/" \
+            "${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:${REMOTE_DIR}/"
+
+      - name: Restart Passenger
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/id_ed25519 \
+            "${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}" \
+            "mkdir -p '${REMOTE_DIR}/tmp' && touch '${REMOTE_DIR}/tmp/restart.txt'"
+
+      - name: Health check
+        run: |
+          set -euo pipefail
+          if [ -n "${{ secrets.ADMIN_HEALTH_URL }}" ]; then
+            for i in 1 2 3 4 5 6 7 8; do
+              code=$(curl -sS -o /dev/null -w "%{http_code}" "${{ secrets.ADMIN_HEALTH_URL }}" || true)
+              echo "attempt $i: $code"
+              # 200 (login page) or 307 (redirect to /dashboard) both mean alive.
+              case "$code" in 200|301|302|307|308) exit 0 ;; esac
+              sleep 5
+            done
+            echo "::error::admin health check failed"
+            exit 1
+          else
+            echo "ADMIN_HEALTH_URL not set — skipping health check"
+          fi
