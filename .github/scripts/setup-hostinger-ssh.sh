@@ -1,49 +1,47 @@
 #!/usr/bin/env bash
-# Validates Hostinger deploy secrets and writes ~/.ssh/config (alias: hostinger).
-#
-# Required env:
-#   HOSTINGER_SSH_KEY, HOSTINGER_HOST, HOSTINGER_USER
-# Port (first non-empty wins, default 65002):
-#   HOSTINGER_SSH_PORT  — GitHub repo variable (preferred)
-#   HOSTINGER_PORT      — legacy secret fallback
-# Optional:
-#   HOSTINGER_KNOWN_HOSTS
+# Validates Hostinger deploy credentials and writes ~/.ssh/config (alias: hostinger).
 set -euo pipefail
 
+# Strip whitespace and accidental "KEY=value" paste from GitHub secrets UI.
+normalize() {
+  local raw="$1"
+  shift
+  raw="$(printf '%s' "$raw" | tr -d '[:space:]')"
+  for prefix in "$@"; do
+    raw="${raw#${prefix}=}"
+  done
+  printf '%s' "$raw"
+}
+
 require() {
-  local name="$1" val="${!1:-}"
+  local name="$1" val="$2"
   if [ -z "$val" ]; then
-    echo "::error::$name is empty — set the matching GitHub secret"
+    echo "::error::$name is empty"
     exit 1
   fi
 }
 
-normalize_port() {
-  local raw="$1"
-  raw="$(printf '%s' "$raw" | tr -d '[:space:]')"
-  raw="${raw#HOSTINGER_PORT=}"
-  raw="${raw#HOSTINGER_SSH_PORT=}"
-  # Keep digits only (handles pasted lines like "Port: 65002").
-  raw="$(printf '%s' "$raw" | sed 's/[^0-9]//g')"
-  printf '%s' "$raw"
-}
+HOSTINGER_SSH_KEY="${HOSTINGER_SSH_KEY:-}"
+require "HOSTINGER_SSH_KEY" "$HOSTINGER_SSH_KEY"
 
-require HOSTINGER_SSH_KEY
-require HOSTINGER_HOST
-require HOSTINGER_USER
+HOSTINGER_HOST="$(normalize "${HOSTINGER_SSH_HOST:-${HOSTINGER_HOST:-}}" HOSTINGER_SSH_HOST HOSTINGER_HOST)"
+require "HOSTINGER_SSH_HOST" "$HOSTINGER_HOST"
 
-HOSTINGER_PORT="$(normalize_port "${HOSTINGER_SSH_PORT:-}${HOSTINGER_PORT:-}")"
-if [ -z "$HOSTINGER_PORT" ]; then
-  HOSTINGER_PORT="65002"
-  echo "HOSTINGER_SSH_PORT not set — using default 65002"
-fi
+HOSTINGER_USER="$(normalize "${HOSTINGER_SSH_USER:-${HOSTINGER_USER:-}}" HOSTINGER_SSH_USER HOSTINGER_USER)"
+require "HOSTINGER_SSH_USER" "$HOSTINGER_USER"
+
+HOSTINGER_PORT="$(normalize "${HOSTINGER_SSH_PORT:-${HOSTINGER_PORT:-}}" HOSTINGER_SSH_PORT HOSTINGER_PORT)"
+HOSTINGER_PORT="$(printf '%s' "$HOSTINGER_PORT" | sed 's/[^0-9]//g')"
+[ -n "$HOSTINGER_PORT" ] || HOSTINGER_PORT="65002"
 
 case "$HOSTINGER_PORT" in
   *[!0-9]*)
-    echo "::error::HOSTINGER_SSH_PORT must be numeric (length ${#HOSTINGER_PORT})"
+    echo "::error::SSH port must be numeric"
     exit 1
     ;;
 esac
+
+echo "SSH target: user_len=${#HOSTINGER_USER} host_len=${#HOSTINGER_HOST} port=${HOSTINGER_PORT}"
 
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
@@ -67,4 +65,9 @@ else
 fi
 chmod 600 ~/.ssh/known_hosts
 
-echo "SSH configured for hostinger (${HOSTINGER_USER}@${HOSTINGER_HOST}:${HOSTINGER_PORT})"
+if ! ssh -F "$HOME/.ssh/config" -o BatchMode=yes -o ConnectTimeout=15 hostinger 'echo ok' >/dev/null 2>&1; then
+  echo "::error::SSH preflight failed — verify HOSTINGER_SSH_HOST, HOSTINGER_SSH_USER, HOSTINGER_SSH_KEY"
+  exit 1
+fi
+
+echo "SSH preflight ok"

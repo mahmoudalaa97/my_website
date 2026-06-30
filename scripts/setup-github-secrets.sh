@@ -125,20 +125,27 @@ write_var() {
   ok "set variable: $name"
 }
 
+normalize_field() {
+  local raw="$1" prefix="$2"
+  raw="$(printf '%s' "$raw" | tr -d '[:space:]')"
+  raw="${raw#${prefix}=}"
+  printf '%s' "$raw"
+}
+
 log "writing repository secrets and variables to $REPO"
-write_secret HOSTINGER_HOST       "$(printf '%s' "$HOSTINGER_HOST" | tr -d '[:space:]')"
-write_secret HOSTINGER_USER       "$(printf '%s' "$HOSTINGER_USER" | tr -d '[:space:]')"
-write_secret HOSTINGER_WEB_DIR    "$(printf '%s' "$HOSTINGER_WEB_DIR" | tr -d '[:space:]')"
-write_secret HOSTINGER_ADMIN_DIR  "$(printf '%s' "$HOSTINGER_ADMIN_DIR" | tr -d '[:space:]')"
-write_secret HOSTINGER_API_DIR    "$(printf '%s' "$HOSTINGER_API_DIR" | tr -d '[:space:]')"
 write_secret HOSTINGER_SSH_KEY    "$(cat "$SSH_KEY_PATH")"
 write_secret HOSTINGER_KNOWN_HOSTS "$KNOWN_HOSTS"
+write_secret HOSTINGER_WEB_DIR    "$(normalize_field "$HOSTINGER_WEB_DIR" HOSTINGER_WEB_DIR)"
+write_secret HOSTINGER_ADMIN_DIR  "$(normalize_field "$HOSTINGER_ADMIN_DIR" HOSTINGER_ADMIN_DIR)"
+write_secret HOSTINGER_API_DIR    "$(normalize_field "$HOSTINGER_API_DIR" HOSTINGER_API_DIR)"
 write_secret API_HEALTH_URL       "${API_HEALTH_URL:-}"
 write_secret WEB_HEALTH_URL       "${WEB_HEALTH_URL:-}"
 write_secret ADMIN_HEALTH_URL     "${ADMIN_HEALTH_URL:-}"
 
-# SSH port is not sensitive — store as a repo variable (avoids secret masking/paste issues).
-write_var HOSTINGER_SSH_PORT      "$(printf '%s' "${HOSTINGER_PORT:-65002}" | sed 's/[^0-9]//g')"
+# Non-sensitive connection details — repo variables (visible, easy to fix in UI).
+write_var HOSTINGER_SSH_HOST      "$(normalize_field "$HOSTINGER_HOST" HOSTINGER_HOST)"
+write_var HOSTINGER_SSH_USER      "$(normalize_field "$HOSTINGER_USER" HOSTINGER_USER)"
+write_var HOSTINGER_SSH_PORT      "$(normalize_field "${HOSTINGER_PORT:-65002}" HOSTINGER_PORT | sed 's/[^0-9]//g')"
 write_var NEXT_PUBLIC_API_URL     "${NEXT_PUBLIC_API_URL:-https://api.yourdomain.com/api}"
 
 log "done"

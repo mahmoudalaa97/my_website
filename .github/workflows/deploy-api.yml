@@ -70,9 +70,11 @@ jobs:
       - name: Setup SSH
         env:
           HOSTINGER_SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          HOSTINGER_SSH_HOST: ${{ vars.HOSTINGER_SSH_HOST }}
+          HOSTINGER_SSH_USER: ${{ vars.HOSTINGER_SSH_USER }}
+          HOSTINGER_SSH_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
           HOSTINGER_HOST: ${{ secrets.HOSTINGER_HOST }}
           HOSTINGER_USER: ${{ secrets.HOSTINGER_USER }}
-          HOSTINGER_SSH_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
           HOSTINGER_PORT: ${{ secrets.HOSTINGER_PORT }}
           HOSTINGER_KNOWN_HOSTS: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
         run: bash .github/scripts/setup-hostinger-ssh.sh
@@ -82,8 +84,10 @@ jobs:
           REMOTE_DIR: ${{ secrets.HOSTINGER_API_DIR }}
         run: |
           set -euo pipefail
-          REMOTE_DIR="$(printf '%s' "$REMOTE_DIR" | tr -d '[:space:]')"
-          [ -n "$REMOTE_DIR" ] || { echo "::error::HOSTINGER_API_DIR secret is empty"; exit 1; }
+          source .github/scripts/normalize-remote-dir.sh
+          REMOTE_DIR="$(normalize_remote_dir "$REMOTE_DIR")"
+          [ -n "$REMOTE_DIR" ] || { echo "::error::HOSTINGER_API_DIR is empty"; exit 1; }
+          echo "Remote path length: ${#REMOTE_DIR}"
           rsync -az --delete --human-readable \
             -e "ssh -F $HOME/.ssh/config" \
             dist/api/ \
@@ -94,7 +98,8 @@ jobs:
           REMOTE_DIR: ${{ secrets.HOSTINGER_API_DIR }}
         run: |
           set -euo pipefail
-          REMOTE_DIR="$(printf '%s' "$REMOTE_DIR" | tr -d '[:space:]')"
+          source .github/scripts/normalize-remote-dir.sh
+          REMOTE_DIR="$(normalize_remote_dir "$REMOTE_DIR")"
           ssh -F "$HOME/.ssh/config" hostinger \
             "cd './${REMOTE_DIR}' && \
              php artisan migrate --force && \
