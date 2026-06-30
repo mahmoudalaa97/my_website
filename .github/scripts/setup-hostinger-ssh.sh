@@ -48,6 +48,16 @@ chmod 700 ~/.ssh
 printf '%s\n' "$HOSTINGER_SSH_KEY" > ~/.ssh/id_ed25519
 chmod 600 ~/.ssh/id_ed25519
 
+# Reject accidental upload of a .pub file.
+if grep -q '^ssh-ed25519\|^ssh-rsa' ~/.ssh/id_ed25519 2>/dev/null; then
+  echo "::error::HOSTINGER_SSH_KEY looks like a PUBLIC key — paste the private key (~/.ssh/id_ed25519_hostinger, no .pub)"
+  exit 1
+fi
+if ! ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null 2>&1; then
+  echo "::error::HOSTINGER_SSH_KEY is not a valid private key"
+  exit 1
+fi
+
 cat > ~/.ssh/config <<EOF
 Host hostinger
   HostName ${HOSTINGER_HOST}
@@ -66,7 +76,13 @@ fi
 chmod 600 ~/.ssh/known_hosts
 
 if ! ssh -F "$HOME/.ssh/config" -o BatchMode=yes -o ConnectTimeout=15 hostinger 'echo ok' >/dev/null 2>&1; then
-  echo "::error::SSH preflight failed — verify HOSTINGER_SSH_HOST, HOSTINGER_SSH_USER, HOSTINGER_SSH_KEY"
+  echo "::error::SSH preflight failed"
+  echo "Checklist:"
+  echo "  1. Variables: HOSTINGER_SSH_HOST=82.112.243.32  HOSTINGER_SSH_USER=u661321560  HOSTINGER_SSH_PORT=65002"
+  echo "  2. Secret HOSTINGER_SSH_KEY = private key matching the public key in Hostinger hPanel → SSH Access"
+  echo "  3. Run workflow 'Test Hostinger SSH' for a full diagnostic"
+  echo "--- ssh -v (last 25 lines) ---"
+  ssh -F "$HOME/.ssh/config" -o BatchMode=yes -o ConnectTimeout=15 -v hostinger 'echo ok' 2>&1 | tail -25 || true
   exit 1
 fi
 
