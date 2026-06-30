@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DelayController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\MessagesController;
 use App\Http\Controllers\PackagesController;
@@ -16,6 +17,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('health', [HealthController::class, 'index']);
 Route::get('health/live', [HealthController::class, 'live']);
 Route::get('health/ready', [HealthController::class, 'ready']);
+
+// Dev-only: simulate slow responses (local/testing)
+if (app()->environment('local', 'testing')) {
+    Route::get('delay', [DelayController::class, 'index']);
+}
 
 // Named fallback so redirected unauthenticated requests get JSON, not a 500 from URL generator
 Route::get('login', fn () => response()->json([

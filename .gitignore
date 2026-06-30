@@ -46,9 +46,17 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 # .env*
+.env.deploy
+.env.production
 
 # vercel
 .vercel
+
+# Hostinger build output
+/dist/
+
+# Claude Code local config
+.claude/
 
 # typescript
 *.tsbuildinfo
