@@ -152,9 +152,55 @@ That's the whole loop.
 
 ---
 
-## 6. CI — deploy from GitHub on push (alternative to local deploys)
+## 6. CI — deploy from GitHub on push
 
-Three independent workflows live in `.github/workflows/`. Each watches its own paths and deploys only the app it owns:
+### Why GitHub cloud runners cannot SSH to Hostinger
+
+If the workflow log shows:
+
+```
+connect to address … port 65002: Connection timed out
+```
+
+That is expected on **Hostinger shared hosting**. SSH works from your home/office network but **GitHub's cloud servers are blocked** on port 65002. Your SSH key and secrets are fine.
+
+**Fix:** deploy jobs use `runs-on: self-hosted` — a small agent on **your Mac** rsyncs after GitHub builds the app in the cloud.
+
+### One-time: install the self-hosted runner on your Mac
+
+1. GitHub → **Settings → Actions → Runners → New self-hosted runner** → macOS → copy the token
+2. From the repo root:
+
+```bash
+RUNNER_TOKEN=paste_token_here ./scripts/install-self-hosted-runner.sh
+```
+
+3. Keep the runner window open, or install as a service (`cd ~/actions-runner-my-website && ./svc.sh install && ./svc.sh start`)
+4. Set GitHub **Variables** (Settings → Actions → Variables):
+
+| Variable | Value |
+|----------|-------|
+| `HOSTINGER_SSH_HOST` | `82.112.243.32` |
+| `HOSTINGER_SSH_USER` | `u661321560` |
+| `HOSTINGER_SSH_PORT` | `65002` |
+| `HOSTINGER_SSH_KEY_PATH` | `~/.ssh/id_ed25519_hostinger` |
+
+Or run `./scripts/setup-github-secrets.sh --yes`.
+
+### How it works after setup
+
+```text
+push to main → GitHub cloud builds app → artifact → your Mac runner rsyncs to Hostinger
+```
+
+### Alternative: deploy from your Mac (no runner)
+
+```bash
+./scripts/push-and-deploy.sh          # push + build + deploy all
+./scripts/push-and-deploy.sh api      # one app
+```
+
+Three independent workflows in `.github/workflows/`:
 
 | Workflow | Triggers when | Deploys to |
 |---|---|---|

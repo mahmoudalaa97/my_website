@@ -146,6 +146,7 @@ write_secret ADMIN_HEALTH_URL     "${ADMIN_HEALTH_URL:-}"
 write_var HOSTINGER_SSH_HOST      "$(normalize_field "$HOSTINGER_HOST" HOSTINGER_HOST)"
 write_var HOSTINGER_SSH_USER      "$(normalize_field "$HOSTINGER_USER" HOSTINGER_USER)"
 write_var HOSTINGER_SSH_PORT      "$(normalize_field "${HOSTINGER_PORT:-65002}" HOSTINGER_PORT | sed 's/[^0-9]//g')"
+write_var HOSTINGER_SSH_KEY_PATH  "${HOSTINGER_SSH_KEY_PATH:-$HOME/.ssh/id_ed25519_hostinger}"
 write_var NEXT_PUBLIC_API_URL     "${NEXT_PUBLIC_API_URL:-https://api.yourdomain.com/api}"
 
 log "done"

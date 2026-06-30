@@ -13,13 +13,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
-    env:
-      APP_DIR: apps/api-php
-      REMOTE_DIR: ${{ secrets.HOSTINGER_API_DIR }}
 
     steps:
       - name: Checkout
@@ -41,13 +37,13 @@ jobs:
           restore-keys: composer-
 
       - name: Install production dependencies
-        working-directory: ${{ env.APP_DIR }}
+        working-directory: apps/api-php
         run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
       - name: Stage deploy artifact
         run: |
           set -euo pipefail
-          mkdir -p dist
+          mkdir -p dist/api
           rsync -a --delete \
             --exclude='.env' \
             --exclude='.env.local' \
@@ -62,51 +58,41 @@ jobs:
             --exclude='tests/' \
             --exclude='.phpunit.cache/' \
             --exclude='.git*' \
-            "${APP_DIR}/" dist/api/
-          # Ship the prod env template so first-time setup has a reference.
-          cp "${APP_DIR}/.env.production.example" dist/api/.env.production.example
+            apps/api-php/ dist/api/
+          cp apps/api-php/.env.production.example dist/api/.env.production.example
           du -sh dist/api
 
-      - name: Setup SSH
-        env:
-          HOSTINGER_SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
-          HOSTINGER_SSH_HOST: ${{ vars.HOSTINGER_SSH_HOST }}
-          HOSTINGER_SSH_USER: ${{ vars.HOSTINGER_SSH_USER }}
-          HOSTINGER_SSH_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
-          HOSTINGER_HOST: ${{ secrets.HOSTINGER_HOST }}
-          HOSTINGER_USER: ${{ secrets.HOSTINGER_USER }}
-          HOSTINGER_PORT: ${{ secrets.HOSTINGER_PORT }}
-          HOSTINGER_KNOWN_HOSTS: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
-        run: bash .github/scripts/setup-hostinger-ssh.sh
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-api
+          path: dist/api/
+          retention-days: 1
 
-      - name: Rsync to Hostinger
-        env:
-          REMOTE_DIR: ${{ secrets.HOSTINGER_API_DIR }}
-        run: |
-          set -euo pipefail
-          source .github/scripts/normalize-remote-dir.sh
-          REMOTE_DIR="$(normalize_remote_dir "$REMOTE_DIR")"
-          [ -n "$REMOTE_DIR" ] || { echo "::error::HOSTINGER_API_DIR is empty"; exit 1; }
-          echo "Remote path length: ${#REMOTE_DIR}"
-          rsync -az --delete --human-readable \
-            -e "ssh -F $HOME/.ssh/config" \
-            dist/api/ \
-            "hostinger:./${REMOTE_DIR}/"
+  deploy:
+    needs: build
+    # Hostinger shared hosting blocks SSH from GitHub cloud IPs — deploy from your Mac.
+    runs-on: self-hosted
+    timeout-minutes: 15
 
-      - name: Run post-deploy (migrate + caches)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-api
+          path: dist/api
+
+      - name: Deploy to Hostinger
         env:
-          REMOTE_DIR: ${{ secrets.HOSTINGER_API_DIR }}
-        run: |
-          set -euo pipefail
-          source .github/scripts/normalize-remote-dir.sh
-          REMOTE_DIR="$(normalize_remote_dir "$REMOTE_DIR")"
-          ssh -F "$HOME/.ssh/config" hostinger \
-            "cd './${REMOTE_DIR}' && \
-             php artisan migrate --force && \
-             php artisan storage:link 2>/dev/null || true && \
-             php artisan config:cache && \
-             php artisan route:cache && \
-             php artisan view:cache"
+          HOSTINGER_HOST: ${{ vars.HOSTINGER_SSH_HOST }}
+          HOSTINGER_USER: ${{ vars.HOSTINGER_SSH_USER }}
+          HOSTINGER_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
+          HOSTINGER_API_DIR: ${{ secrets.HOSTINGER_API_DIR }}
+          HOSTINGER_SSH_KEY_PATH: ${{ vars.HOSTINGER_SSH_KEY_PATH }}
+        run: ./scripts/deploy-hostinger.sh api
 
       - name: Health check
         run: |

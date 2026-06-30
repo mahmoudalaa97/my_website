@@ -5,7 +5,7 @@ on:
 
 jobs:
   test-ssh:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 5
 
     steps:
@@ -51,7 +51,12 @@ jobs:
           HOSTINGER_USER: ${{ secrets.HOSTINGER_USER }}
           HOSTINGER_PORT: ${{ secrets.HOSTINGER_PORT }}
           HOSTINGER_KNOWN_HOSTS: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
-        run: bash .github/scripts/setup-hostinger-ssh.sh
+        run: |
+          # Self-hosted runner: prefer local deploy key over GitHub secret.
+          if [ -f "$HOME/.ssh/id_ed25519_hostinger" ]; then
+            export HOSTINGER_SSH_KEY="$(cat "$HOME/.ssh/id_ed25519_hostinger")"
+          fi
+          bash .github/scripts/setup-hostinger-ssh.sh
 
       - name: Remote smoke test
         run: |

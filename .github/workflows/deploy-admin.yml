@@ -17,14 +17,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     env:
-      APP_NAME: admin
-      APP_DIR: apps/admin
-      REMOTE_DIR: ${{ secrets.HOSTINGER_ADMIN_DIR }}
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
 
@@ -52,21 +49,15 @@ jobs:
       - name: Stage deploy artifact
         run: |
           set -euo pipefail
-          OUT="dist/${APP_NAME}"
+          OUT="dist/admin"
           rm -rf "$OUT" && mkdir -p "$OUT"
-          # Standalone bundle is rooted at the monorepo root because of
-          # outputFileTracingRoot — copy it as-is, then layer in the static
-          # assets and public/ that standalone leaves out by design.
-          cp -R "${APP_DIR}/.next/standalone/." "$OUT/"
-          mkdir -p "$OUT/${APP_DIR}/.next"
-          cp -R "${APP_DIR}/.next/static" "$OUT/${APP_DIR}/.next/static"
-          if [ -d "${APP_DIR}/public" ]; then
-            cp -R "${APP_DIR}/public" "$OUT/${APP_DIR}/public"
+          cp -R apps/admin/.next/standalone/. "$OUT/"
+          mkdir -p "$OUT/apps/admin/.next"
+          cp -R apps/admin/.next/static "$OUT/apps/admin/.next/static"
+          if [ -d apps/admin/public ]; then
+            cp -R apps/admin/public "$OUT/apps/admin/public"
           fi
-          # Top-level server.js shim — Hostinger's "Application startup file"
-          # always points at server.js regardless of the monorepo path inside.
-          printf "require('./%s/server.js');\n" "${APP_DIR}" > "$OUT/server.js"
-          # Minimal package.json so Passenger sees a Node engine.
+          printf "require('./apps/admin/server.js');\n" > "$OUT/server.js"
           cat > "$OUT/package.json" <<'JSON'
           {
             "name": "admin-hostinger",
@@ -78,41 +69,36 @@ jobs:
           JSON
           du -sh "$OUT"
 
-      - name: Setup SSH
-        env:
-          HOSTINGER_SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
-          HOSTINGER_SSH_HOST: ${{ vars.HOSTINGER_SSH_HOST }}
-          HOSTINGER_SSH_USER: ${{ vars.HOSTINGER_SSH_USER }}
-          HOSTINGER_SSH_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
-          HOSTINGER_HOST: ${{ secrets.HOSTINGER_HOST }}
-          HOSTINGER_USER: ${{ secrets.HOSTINGER_USER }}
-          HOSTINGER_PORT: ${{ secrets.HOSTINGER_PORT }}
-          HOSTINGER_KNOWN_HOSTS: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
-        run: bash .github/scripts/setup-hostinger-ssh.sh
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-admin
+          path: dist/admin/
+          retention-days: 1
 
-      - name: Rsync to Hostinger
-        env:
-          REMOTE_DIR: ${{ secrets.HOSTINGER_ADMIN_DIR }}
-        run: |
-          set -euo pipefail
-          source .github/scripts/normalize-remote-dir.sh
-          REMOTE_DIR="$(normalize_remote_dir "$REMOTE_DIR")"
-          [ -n "$REMOTE_DIR" ] || { echo "::error::HOSTINGER_ADMIN_DIR is empty"; exit 1; }
-          echo "Remote path length: ${#REMOTE_DIR}"
-          rsync -az --delete --human-readable \
-            -e "ssh -F $HOME/.ssh/config" \
-            "dist/${APP_NAME}/" \
-            "hostinger:./${REMOTE_DIR}/"
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    timeout-minutes: 15
 
-      - name: Restart Passenger
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-admin
+          path: dist/admin
+
+      - name: Deploy to Hostinger
         env:
-          REMOTE_DIR: ${{ secrets.HOSTINGER_ADMIN_DIR }}
-        run: |
-          set -euo pipefail
-          source .github/scripts/normalize-remote-dir.sh
-          REMOTE_DIR="$(normalize_remote_dir "$REMOTE_DIR")"
-          ssh -F "$HOME/.ssh/config" hostinger \
-            "mkdir -p './${REMOTE_DIR}/tmp' && touch './${REMOTE_DIR}/tmp/restart.txt'"
+          HOSTINGER_HOST: ${{ vars.HOSTINGER_SSH_HOST }}
+          HOSTINGER_USER: ${{ vars.HOSTINGER_SSH_USER }}
+          HOSTINGER_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
+          HOSTINGER_ADMIN_DIR: ${{ secrets.HOSTINGER_ADMIN_DIR }}
+          HOSTINGER_SSH_KEY_PATH: ${{ vars.HOSTINGER_SSH_KEY_PATH }}
+        run: ./scripts/deploy-hostinger.sh admin
 
       - name: Health check
         run: |
@@ -121,7 +107,6 @@ jobs:
             for i in 1 2 3 4 5 6 7 8; do
               code=$(curl -sS -o /dev/null -w "%{http_code}" "${{ secrets.ADMIN_HEALTH_URL }}" || true)
               echo "attempt $i: $code"
-              # 200 (login page) or 307 (redirect to /dashboard) both mean alive.
               case "$code" in 200|301|302|307|308) exit 0 ;; esac
               sleep 5
             done

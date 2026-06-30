@@ -49,13 +49,23 @@ done
 
 [ -d dist ] || die "dist/ missing — run scripts/build-for-hostinger.sh first"
 
+# Optional deploy key (self-hosted runner on your Mac uses ~/.ssh/id_ed25519_hostinger).
+SSH_KEY="${HOSTINGER_SSH_KEY_PATH:-$HOME/.ssh/id_ed25519_hostinger}"
+SSH_KEY="${SSH_KEY/#\~/$HOME}"
 SSH_OPTS="-p $HOSTINGER_PORT -o StrictHostKeyChecking=accept-new"
+if [ -f "$SSH_KEY" ]; then
+  SSH_OPTS="$SSH_OPTS -i $SSH_KEY"
+fi
 RSYNC_OPTS="-az --delete --human-readable $DRY"
 
 deploy_one() {
-  local app="$1" target_dir_var="HOSTINGER_${app^^}_DIR" target_dir
-  target_dir="${!target_dir_var:-}"
-  [ -n "$target_dir" ] || die "set $target_dir_var to the remote path for $app"
+  local app="$1" target_dir=""
+  case "$app" in
+    web)   target_dir="${HOSTINGER_WEB_DIR:-}" ;;
+    admin) target_dir="${HOSTINGER_ADMIN_DIR:-}" ;;
+    api)   target_dir="${HOSTINGER_API_DIR:-}" ;;
+  esac
+  [ -n "$target_dir" ] || die "set remote dir for $app in .env.deploy"
 
   local src="dist/$app/"
   [ -d "$src" ] || die "dist/$app/ not built — run scripts/build-for-hostinger.sh"

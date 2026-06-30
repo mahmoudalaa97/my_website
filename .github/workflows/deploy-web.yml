@@ -17,14 +17,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     env:
-      APP_NAME: web
-      APP_DIR: apps/web
-      REMOTE_DIR: ${{ secrets.HOSTINGER_WEB_DIR }}
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
 
@@ -52,15 +49,15 @@ jobs:
       - name: Stage deploy artifact
         run: |
           set -euo pipefail
-          OUT="dist/${APP_NAME}"
+          OUT="dist/web"
           rm -rf "$OUT" && mkdir -p "$OUT"
-          cp -R "${APP_DIR}/.next/standalone/." "$OUT/"
-          mkdir -p "$OUT/${APP_DIR}/.next"
-          cp -R "${APP_DIR}/.next/static" "$OUT/${APP_DIR}/.next/static"
-          if [ -d "${APP_DIR}/public" ]; then
-            cp -R "${APP_DIR}/public" "$OUT/${APP_DIR}/public"
+          cp -R apps/web/.next/standalone/. "$OUT/"
+          mkdir -p "$OUT/apps/web/.next"
+          cp -R apps/web/.next/static "$OUT/apps/web/.next/static"
+          if [ -d apps/web/public ]; then
+            cp -R apps/web/public "$OUT/apps/web/public"
           fi
-          printf "require('./%s/server.js');\n" "${APP_DIR}" > "$OUT/server.js"
+          printf "require('./apps/web/server.js');\n" > "$OUT/server.js"
           cat > "$OUT/package.json" <<'JSON'
           {
             "name": "web-hostinger",
@@ -72,41 +69,36 @@ jobs:
           JSON
           du -sh "$OUT"
 
-      - name: Setup SSH
-        env:
-          HOSTINGER_SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
-          HOSTINGER_SSH_HOST: ${{ vars.HOSTINGER_SSH_HOST }}
-          HOSTINGER_SSH_USER: ${{ vars.HOSTINGER_SSH_USER }}
-          HOSTINGER_SSH_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
-          HOSTINGER_HOST: ${{ secrets.HOSTINGER_HOST }}
-          HOSTINGER_USER: ${{ secrets.HOSTINGER_USER }}
-          HOSTINGER_PORT: ${{ secrets.HOSTINGER_PORT }}
-          HOSTINGER_KNOWN_HOSTS: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
-        run: bash .github/scripts/setup-hostinger-ssh.sh
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-web
+          path: dist/web/
+          retention-days: 1
 
-      - name: Rsync to Hostinger
-        env:
-          REMOTE_DIR: ${{ secrets.HOSTINGER_WEB_DIR }}
-        run: |
-          set -euo pipefail
-          source .github/scripts/normalize-remote-dir.sh
-          REMOTE_DIR="$(normalize_remote_dir "$REMOTE_DIR")"
-          [ -n "$REMOTE_DIR" ] || { echo "::error::HOSTINGER_WEB_DIR is empty"; exit 1; }
-          echo "Remote path length: ${#REMOTE_DIR}"
-          rsync -az --delete --human-readable \
-            -e "ssh -F $HOME/.ssh/config" \
-            "dist/${APP_NAME}/" \
-            "hostinger:./${REMOTE_DIR}/"
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    timeout-minutes: 15
 
-      - name: Restart Passenger
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-web
+          path: dist/web
+
+      - name: Deploy to Hostinger
         env:
-          REMOTE_DIR: ${{ secrets.HOSTINGER_WEB_DIR }}
-        run: |
-          set -euo pipefail
-          source .github/scripts/normalize-remote-dir.sh
-          REMOTE_DIR="$(normalize_remote_dir "$REMOTE_DIR")"
-          ssh -F "$HOME/.ssh/config" hostinger \
-            "mkdir -p './${REMOTE_DIR}/tmp' && touch './${REMOTE_DIR}/tmp/restart.txt'"
+          HOSTINGER_HOST: ${{ vars.HOSTINGER_SSH_HOST }}
+          HOSTINGER_USER: ${{ vars.HOSTINGER_SSH_USER }}
+          HOSTINGER_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
+          HOSTINGER_WEB_DIR: ${{ secrets.HOSTINGER_WEB_DIR }}
+          HOSTINGER_SSH_KEY_PATH: ${{ vars.HOSTINGER_SSH_KEY_PATH }}
+        run: ./scripts/deploy-hostinger.sh web
 
       - name: Health check
         run: |
