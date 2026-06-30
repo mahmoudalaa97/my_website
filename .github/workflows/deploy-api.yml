@@ -69,34 +69,34 @@ jobs:
           du -sh dist/api
 
       - name: Setup SSH
-        run: |
-          set -euo pipefail
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          printf '%s\n' "${{ secrets.HOSTINGER_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          # Pin the host key once via secret to avoid TOFU; fall back to scan.
-          if [ -n "${{ secrets.HOSTINGER_KNOWN_HOSTS }}" ]; then
-            printf '%s\n' "${{ secrets.HOSTINGER_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-          else
-            ssh-keyscan -p "${{ secrets.HOSTINGER_PORT }}" -H "${{ secrets.HOSTINGER_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
-          fi
-          chmod 600 ~/.ssh/known_hosts
+        env:
+          HOSTINGER_SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          HOSTINGER_HOST: ${{ secrets.HOSTINGER_HOST }}
+          HOSTINGER_USER: ${{ secrets.HOSTINGER_USER }}
+          HOSTINGER_PORT: ${{ secrets.HOSTINGER_PORT }}
+          HOSTINGER_KNOWN_HOSTS: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
+        run: bash .github/scripts/setup-hostinger-ssh.sh
 
       - name: Rsync to Hostinger
+        env:
+          REMOTE_DIR: ${{ secrets.HOSTINGER_API_DIR }}
         run: |
           set -euo pipefail
+          REMOTE_DIR="$(printf '%s' "$REMOTE_DIR" | tr -d '[:space:]')"
           [ -n "$REMOTE_DIR" ] || { echo "::error::HOSTINGER_API_DIR secret is empty"; exit 1; }
           rsync -az --delete --human-readable \
-            -e "ssh -p ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/id_ed25519" \
+            -e "ssh -F $HOME/.ssh/config" \
             dist/api/ \
-            "${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:${REMOTE_DIR}/"
+            "hostinger:./${REMOTE_DIR}/"
 
       - name: Run post-deploy (migrate + caches)
+        env:
+          REMOTE_DIR: ${{ secrets.HOSTINGER_API_DIR }}
         run: |
-          ssh -p ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/id_ed25519 \
-            "${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}" \
-            "cd '${REMOTE_DIR}' && \
+          set -euo pipefail
+          REMOTE_DIR="$(printf '%s' "$REMOTE_DIR" | tr -d '[:space:]')"
+          ssh -F "$HOME/.ssh/config" hostinger \
+            "cd './${REMOTE_DIR}' && \
              php artisan migrate --force && \
              php artisan storage:link 2>/dev/null || true && \
              php artisan config:cache && \
