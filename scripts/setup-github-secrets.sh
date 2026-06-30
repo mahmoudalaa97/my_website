@@ -126,20 +126,19 @@ write_var() {
 }
 
 log "writing repository secrets and variables to $REPO"
-write_secret HOSTINGER_HOST       "$HOSTINGER_HOST"
-write_secret HOSTINGER_USER       "$HOSTINGER_USER"
-write_secret HOSTINGER_PORT       "$HOSTINGER_PORT"
-write_secret HOSTINGER_WEB_DIR    "$HOSTINGER_WEB_DIR"
-write_secret HOSTINGER_ADMIN_DIR  "$HOSTINGER_ADMIN_DIR"
-write_secret HOSTINGER_API_DIR    "$HOSTINGER_API_DIR"
+write_secret HOSTINGER_HOST       "$(printf '%s' "$HOSTINGER_HOST" | tr -d '[:space:]')"
+write_secret HOSTINGER_USER       "$(printf '%s' "$HOSTINGER_USER" | tr -d '[:space:]')"
+write_secret HOSTINGER_WEB_DIR    "$(printf '%s' "$HOSTINGER_WEB_DIR" | tr -d '[:space:]')"
+write_secret HOSTINGER_ADMIN_DIR  "$(printf '%s' "$HOSTINGER_ADMIN_DIR" | tr -d '[:space:]')"
+write_secret HOSTINGER_API_DIR    "$(printf '%s' "$HOSTINGER_API_DIR" | tr -d '[:space:]')"
 write_secret HOSTINGER_SSH_KEY    "$(cat "$SSH_KEY_PATH")"
 write_secret HOSTINGER_KNOWN_HOSTS "$KNOWN_HOSTS"
 write_secret API_HEALTH_URL       "${API_HEALTH_URL:-}"
 write_secret WEB_HEALTH_URL       "${WEB_HEALTH_URL:-}"
 write_secret ADMIN_HEALTH_URL     "${ADMIN_HEALTH_URL:-}"
 
-# NEXT_PUBLIC_API_URL is read by the Next.js builds at build time. It's not
-# a secret (it ends up in the client bundle), so use a variable.
+# SSH port is not sensitive — store as a repo variable (avoids secret masking/paste issues).
+write_var HOSTINGER_SSH_PORT      "$(printf '%s' "${HOSTINGER_PORT:-65002}" | sed 's/[^0-9]//g')"
 write_var NEXT_PUBLIC_API_URL     "${NEXT_PUBLIC_API_URL:-https://api.yourdomain.com/api}"
 
 log "done"
