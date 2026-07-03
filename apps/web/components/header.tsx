@@ -48,6 +48,7 @@ export const HeroHeader = ({ settings }: HeroHeaderProps) => {
     }
 
     const logoSrc = resolveMediaUrl(settings?.logoDarkUrl || settings?.logoUrl)
+    const siteName = settings?.siteName?.trim()
 
     return (
         <header>
@@ -66,19 +67,26 @@ export const HeroHeader = ({ settings }: HeroHeaderProps) => {
                                 aria-label="home"
                                 className="flex items-center space-x-2">
                                 {logoSrc ? (
-                                    <Image
-                                        src={logoSrc}
-                                        alt={settings?.siteName || 'Logo'}
-                                        width={120}
-                                        height={40}
-                                        className="h-9 w-auto"
-                                    />
+                                    <>
+                                        <Image
+                                            src={logoSrc}
+                                            alt={siteName || 'Logo'}
+                                            width={120}
+                                            height={40}
+                                            className="h-9 w-auto"
+                                        />
+                                        {siteName && (
+                                            <span className="text-lg font-bold">{siteName}</span>
+                                        )}
+                                    </>
+                                ) : siteName ? (
+                                    <span className="text-lg font-bold">{siteName}</span>
                                 ) : (
                                     <>
                                         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                                             <Code2 className="size-5 text-primary" />
                                         </div>
-                                        <span className="text-lg font-bold">{settings?.siteName || 'Your Business'}</span>
+                                        <span className="text-lg font-bold">Your Business</span>
                                     </>
                                 )}
                             </Link>
