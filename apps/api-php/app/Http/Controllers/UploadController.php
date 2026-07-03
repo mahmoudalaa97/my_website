@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Media;
+use App\Support\StorageUrl;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -77,7 +78,10 @@ class UploadController extends Controller
     {
         $media = Media::findOrFail($id);
         if ($media->provider === 'local') {
-            Storage::disk('public')->delete(str_replace('/storage/', '', $media->url));
+            $path = StorageUrl::toStoragePath($media->getRawOriginal('url'));
+            if ($path) {
+                Storage::disk('public')->delete($path);
+            }
         }
         $media->delete();
         return response()->json(['success' => true]);
@@ -99,7 +103,7 @@ class UploadController extends Controller
             'original_name' => $file->getClientOriginalName(),
             'mime_type' => $mime,
             'size' => $file->getSize(),
-            'url' => '/storage/'.$path,
+            'url' => '/storage/'.$path, // stored relative; Media accessor returns absolute URL
             'type' => $type,
             'provider' => 'local',
             'folder' => $folder,

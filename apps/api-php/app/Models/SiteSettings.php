@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\StorageUrl;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -22,5 +23,16 @@ class SiteSettings extends Model
             'stats' => 'array',
             'updated_at' => 'datetime',
         ];
+    }
+
+    public function getAttribute($key)
+    {
+        $value = parent::getAttribute($key);
+
+        if (is_string($value) && str_ends_with((string) $key, '_url') && StorageUrl::isStoragePath($value)) {
+            return StorageUrl::toPublicUrl($value);
+        }
+
+        return $value;
     }
 }

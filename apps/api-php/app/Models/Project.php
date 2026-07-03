@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\StorageUrl;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -29,5 +30,10 @@ class Project extends Model
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+    public function getImageUrlAttribute(?string $value): ?string
+    {
+        return StorageUrl::toPublicUrl($value);
     }
 }

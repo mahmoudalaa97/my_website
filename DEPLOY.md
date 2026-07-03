@@ -1,121 +1,62 @@
-# Deployment Guide
+# Deployment Guide (Hostinger)
 
-Each app deploys independently. The monorepo stays as one repo — you just point each platform at the right subdirectory.
+All three apps deploy to **Hostinger** using the **[Hostinger Connector](https://www.hostinger.com/support/how-to-set-up-web-hosting-mcp-on-local-ides/)** extension in Cursor.
 
-| App | Platform | Subdir | Why |
-|-----|----------|--------|-----|
-| `web` (public site) | Vercel | `apps/web` | Best Next.js hosting |
-| `admin` (dashboard) | Vercel | `apps/admin` | Best Next.js hosting |
-| `api` (NestJS) | Railway | `apps/api` | Persistent server, DB-friendly |
-| Postgres | Neon / Railway / Supabase | — | Managed Postgres |
-
-You connect them via environment variables. No code changes needed when you redeploy one app.
+| URL | App | Type |
+|-----|-----|------|
+| `mahmoudalaa.com` | `apps/web` | Node.js (Next.js standalone) |
+| `admin.mahmoudalaa.com` | `apps/admin` | Node.js (Next.js standalone) |
+| `api.mahmoudalaa.com` | `apps/api-php` | PHP 8.4 (Laravel) |
 
 ---
 
-## 1. Database (do this first)
+## Setup (one-time)
 
-You need a managed Postgres. Easiest options:
-
-- **Neon** (free tier, serverless): [neon.tech](https://neon.tech) → create project → copy the connection string
-- **Railway Postgres**: add inside the same Railway project as the API
-- **Supabase**: [supabase.com](https://supabase.com) → new project → Settings → Database → connection string
-
-Save the connection string — you'll paste it as `DATABASE_URL` in the API.
-
----
-
-## 2. Deploy the API to Railway
-
-The API is a stateful NestJS server. It cannot run on Vercel.
-
-1. Go to [railway.app](https://railway.app) → New Project → Deploy from GitHub
-2. Pick this repo
-3. In **Service Settings**:
-   - Root Directory: leave blank (deploy from monorepo root)
-   - Railway will detect `nixpacks.toml` and `railway.toml` automatically
-4. Add environment variables (Variables tab):
-
+1. Install **Hostinger Connector** in Cursor and sign in (hPanel → API → Cursor).
+2. In hPanel, for each site:
+   - **api.mahmoudalaa.com** — PHP **8.4**, document root **`public_html/public`**
+   - **mahmoudalaa.com** & **admin.mahmoudalaa.com** — Node.js app, startup file **`server.js`**, Node **20**
+3. Create MySQL database and copy `apps/api-php/.env.production.example` → `.env` on the server.
+4. Set Node env vars in hPanel for web + admin:
    ```
    NODE_ENV=production
-   PORT=4000
-
-   DATABASE_URL=postgresql://...        # from step 1
-   # or set individually:
-   DB_HOST=...
-   DB_PORT=5432
-   DB_USERNAME=...
-   DB_PASSWORD=...
-   DB_NAME=...
-
-   JWT_SECRET=<generate a 32+ char random string>
-   JWT_EXPIRES_IN=7d
-   SESSION_SECRET=<generate another random string>
-
-   ADMIN_EMAIL=admin@yourdomain.com
-   ADMIN_PASSWORD=<a strong password>
-   ADMIN_NAME=Super Admin
-
-   # Set these AFTER you deploy web/admin (step 3) — needed for CORS
-   WEB_URL=https://your-web.vercel.app
-   ADMIN_URL=https://your-admin.vercel.app
+   NEXT_PUBLIC_API_URL=https://api.mahmoudalaa.com/api
    ```
-
-5. Generate a public domain in **Settings → Networking → Generate Domain**. You'll get something like `your-api.up.railway.app`.
-6. Run migrations + seed once via Railway's shell:
-   ```bash
-   pnpm --filter @repo/api db:migrate
-   pnpm --filter @repo/api db:seed
-   ```
-
-The API URL (e.g., `https://your-api.up.railway.app/api`) is what web/admin point to.
 
 ---
 
-## 3. Deploy `web` to Vercel
+## Deploy with Connector
 
-1. Go to [vercel.com](https://vercel.com) → Add New Project → import this repo
-2. **Root Directory**: `apps/web` ← important
-3. Framework: Next.js (auto-detected)
-4. Build/install commands: leave default — `apps/web/vercel.json` overrides them with the correct Turborepo build
-5. Environment Variables:
-   ```
-   NEXT_PUBLIC_API_URL=https://your-api.up.railway.app/api
-   ```
-6. Deploy
+Ask Cursor (with Hostinger MCP enabled) to deploy, or use the Hostinger sidebar.
 
-After it's live, copy the URL (e.g. `https://your-web.vercel.app`) and set `WEB_URL` in Railway, then redeploy the API.
+| App | Connector tool | Notes |
+|-----|----------------|-------|
+| **web** / **admin** | `hosting_deployJsApplication` | Upload source archive; Hostinger builds on server |
+| **web** / **admin** (pre-built) | `hosting_deployStaticWebsite` | Upload pre-built standalone zip if already built locally |
+| **api** | `hosting_deployStaticWebsite` | Upload Laravel bundle zip to `api.mahmoudalaa.com` |
 
----
+After API deploy, run once on server via SSH:
 
-## 4. Deploy `admin` to Vercel
+```bash
+/opt/alt/php84/usr/bin/php artisan migrate --force --seed
+/opt/alt/php84/usr/bin/php artisan storage:link
+/opt/alt/php84/usr/bin/php artisan config:cache
+```
 
-Same as web, but:
-- **Root Directory**: `apps/admin`
-- Same `NEXT_PUBLIC_API_URL` env var
-- After deploy, copy URL → set `ADMIN_URL` in Railway → redeploy API
+Use Connector MCP tools to manage PHP version, databases, DNS, and deployment status.
 
 ---
 
-## 5. Custom domains (optional)
+## Verify
 
-Once everything works on the platform-provided URLs:
-
-- In Vercel: Project Settings → Domains → add `yourdomain.com` and `admin.yourdomain.com`
-- In Railway: Settings → Networking → add `api.yourdomain.com`
-- Update DNS at your registrar with the records each platform shows
-- After DNS propagates, update `WEB_URL`, `ADMIN_URL`, and `NEXT_PUBLIC_API_URL` to the new domains
-
----
-
-## How redeploys work
-
-- Push to `main` → all three platforms rebuild only what changed (Vercel and Railway both detect monorepo changes)
-- Each app deploys independently. A broken `web` deploy does not affect `api`
-- To roll back, use the platform's UI (Vercel: Deployments → Promote; Railway: Deployments → Rollback)
+```bash
+curl https://api.mahmoudalaa.com/api/health
+curl -I https://mahmoudalaa.com
+curl -I https://admin.mahmoudalaa.com
+```
 
 ---
 
 ## Local development
 
-Still use the existing setup — see [README.md](README.md). The Docker stack in [docker/](docker/) is for local dev only; production uses managed platforms.
+See [README.md](README.md) and `./dev.sh`. Docker stack in [docker/](docker/) is for local dev only.

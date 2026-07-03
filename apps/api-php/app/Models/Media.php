@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\StorageUrl;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -39,5 +40,15 @@ class Media extends Model
     public function admin(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'uploaded_by');
+    }
+
+    public function getUrlAttribute(?string $value): ?string
+    {
+        return StorageUrl::toPublicUrl($value);
+    }
+
+    public function getThumbnailUrlAttribute(?string $value): ?string
+    {
+        return StorageUrl::toPublicUrl($value);
     }
 }

@@ -7,6 +7,7 @@ import { Button } from "./button";
 import { Input } from "./input";
 import { Label } from "./label";
 import { api } from "@/lib/api";
+import { resolveMediaUrl } from "@/lib/media-url";
 import { cn } from "@/lib/utils";
 import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 import { toast } from "./toaster";
@@ -87,7 +88,7 @@ export function ImageUpload({
             <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border bg-muted">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={value}
+                src={resolveMediaUrl(value)}
                 alt="Uploaded"
                 className="h-full w-full object-contain"
               />

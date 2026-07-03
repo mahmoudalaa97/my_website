@@ -52,8 +52,9 @@ yarn-error.log*
 # vercel
 .vercel
 
-# Hostinger build output
+# Hostinger / local deploy artifacts
 /dist/
+/server-pull/
 
 # Claude Code local config
 .claude/
