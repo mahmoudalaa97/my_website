@@ -6,6 +6,7 @@ import { Code2, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import React from 'react'
 import { cn } from '@/lib/utils'
+import { resolveMediaUrl } from '@/lib/media-url'
 
 const menuItems = [
     { name: 'About', href: '#about' },
@@ -46,6 +47,8 @@ export const HeroHeader = ({ settings }: HeroHeaderProps) => {
         }
     }
 
+    const logoSrc = resolveMediaUrl(settings?.logoDarkUrl || settings?.logoUrl)
+
     return (
         <header>
             <nav
@@ -62,9 +65,9 @@ export const HeroHeader = ({ settings }: HeroHeaderProps) => {
                                 onClick={(e) => handleNavClick(e, '#home')}
                                 aria-label="home"
                                 className="flex items-center space-x-2">
-                                {settings?.logoDarkUrl ? (
+                                {logoSrc ? (
                                     <Image
-                                        src={settings.logoDarkUrl}
+                                        src={logoSrc}
                                         alt={settings?.siteName || 'Logo'}
                                         width={120}
                                         height={40}
