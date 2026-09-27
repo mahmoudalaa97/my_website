@@ -46,7 +46,15 @@ class SettingsController extends Controller
             'stats' => [],
         ]);
 
-        $settings->fill($request->all())->save();
+        $payload = $request->all();
+        if (array_key_exists('maintenance_mode', $payload)) {
+            $payload['maintenance_mode'] = filter_var(
+                $payload['maintenance_mode'],
+                FILTER_VALIDATE_BOOLEAN
+            );
+        }
+
+        $settings->fill($payload)->save();
 
         return response()->json([
             'success' => true,

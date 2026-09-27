@@ -14,8 +14,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Dynamic metadata generation
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata(): Promise<Metadata> {
+  const health = await api.getHealth();
+  if (!health.ok) {
+    return {
+      title: "We'll be back shortly",
+      robots: { index: false, follow: false },
+    };
+  }
+
   const branding = await api.getBranding();
   
   return {
@@ -23,8 +32,16 @@ export async function generateMetadata(): Promise<Metadata> {
       default: branding?.seoTitle?.replace("%s", branding?.siteName || "Home") || "Website",
       template: branding?.seoTitle || "%s",
     },
-    description: branding?.seoDescription || "Professional services and solutions for your business.",
-    keywords: branding?.seoKeywords?.split(",").map(k => k.trim()) || [],
+    description: branding?.seoDescription || "Affordable websites, mobile apps, and Google Maps setup for startups and small business owners. Get found online and grow.",
+    keywords: branding?.seoKeywords?.split(",").map(k => k.trim()) || [
+      "small business website",
+      "startup software",
+      "mobile app developer",
+      "google business profile setup",
+      "google maps for business",
+      "local seo",
+      "affordable website design",
+    ],
     openGraph: {
       title: branding?.siteName || "Website",
       description: branding?.seoDescription || "",
@@ -45,7 +62,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const branding = await api.getBranding();
+  const health = await api.getHealth();
+  const branding = health.ok ? await api.getBranding() : null;
 
   return (
     <html lang="en" className="scroll-smooth dark">

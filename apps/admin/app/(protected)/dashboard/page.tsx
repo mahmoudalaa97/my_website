@@ -5,8 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { Briefcase, Package, FolderKanban, MessageSquare, Mail, Archive } from "lucide-react";
 import Link from "next/link";
+import { MaintenanceToggle } from "@/components/maintenance-toggle";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export default function DashboardPage() {
+  const { canManageSettings } = usePermissions();
   const { data: services } = useQuery({
     queryKey: ["services"],
     queryFn: () => api.getServices(true),
@@ -68,6 +71,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {canManageSettings && <MaintenanceToggle />}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => (
           <Card key={stat.title}>

@@ -27,6 +27,54 @@ function deepTransformKeys(value: unknown, transform: (key: string) => string): 
 const keysToCamel = <T = unknown>(value: unknown) => deepTransformKeys(value, toCamel) as T;
 const keysToSnake = <T = unknown>(value: unknown) => deepTransformKeys(value, toSnake) as T;
 
+export type ApiHealth = {
+  ok: boolean
+  database: "connected" | "disconnected" | "unreachable"
+  maintenance: boolean
+}
+
+let healthCache: { at: number; value: ApiHealth } | null = null
+const HEALTH_TTL_MS = 3_000
+
+async function fetchHealth(): Promise<ApiHealth> {
+  try {
+    const response = await fetch(`${API_URL}/health`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(4000),
+      headers: { Accept: "application/json" },
+    })
+
+    if (!response.ok) {
+      return { ok: false, database: "disconnected", maintenance: false }
+    }
+
+    const json = (await response.json()) as {
+      database?: string
+      maintenance?: boolean
+    }
+    const database = json.database === "connected" ? "connected" : "disconnected"
+    const maintenance = Boolean(json.maintenance)
+
+    return {
+      ok: database === "connected" && !maintenance,
+      database,
+      maintenance,
+    }
+  } catch {
+    return { ok: false, database: "unreachable", maintenance: false }
+  }
+}
+
+export async function getApiHealth(): Promise<ApiHealth> {
+  if (healthCache && Date.now() - healthCache.at < HEALTH_TTL_MS) {
+    return healthCache.value
+  }
+
+  const value = await fetchHealth()
+  healthCache = { at: Date.now(), value }
+  return value
+}
+
 async function fetchApi<T>(endpoint: string): Promise<T | null> {
   try {
     const response = await fetch(`${API_URL}${endpoint}`, {
@@ -100,6 +148,7 @@ export interface SiteSettings {
   // Footer
   footerText: string;
   copyrightText: string;
+  maintenanceMode?: boolean;
 }
 
 export interface Service {
@@ -152,6 +201,7 @@ export interface Branding {
 }
 
 export const api = {
+  getHealth: getApiHealth,
   getSettings: () => fetchApi<SiteSettings>("/settings"),
   getBranding: () => fetchApi<Branding>("/settings/branding"),
   getServices: () => fetchApi<Service[]>("/services"),

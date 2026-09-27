@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SiteSettings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -9,17 +10,21 @@ class HealthController extends Controller
 {
     public function index(): JsonResponse
     {
+        $maintenance = false;
+
         try {
             DB::connection()->getPdo();
             $db = 'connected';
+            $maintenance = (bool) SiteSettings::query()->value('maintenance_mode');
         } catch (\Throwable $e) {
             $db = 'disconnected';
         }
 
         return response()->json([
             'success' => true,
-            'status' => 'ok',
+            'status' => $maintenance ? 'maintenance' : 'ok',
             'database' => $db,
+            'maintenance' => $maintenance,
             'timestamp' => now()->toIso8601String(),
         ]);
     }

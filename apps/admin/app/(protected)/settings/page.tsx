@@ -14,6 +14,7 @@ import { api, SiteSettings } from "@/lib/api";
 import { toast } from "@/components/ui/toaster";
 import { Loader2, Save, Eye, Palette, Type, Globe, BarChart, Layout, Mail, Info } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
+import { MaintenanceToggle } from "@/components/maintenance-toggle";
 
 const GOOGLE_FONTS = [
   "Inter",
@@ -67,7 +68,7 @@ export default function SettingsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Filter out id and updatedAt before sending to API
-    const { id, updatedAt, ...updateData } = formData;
+    const { id, updatedAt, maintenanceMode: _maintenanceMode, ...updateData } = formData;
     mutation.mutate(updateData);
   };
 
@@ -93,6 +94,8 @@ export default function SettingsPage() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <MaintenanceToggle />
+
       {!canManageSettings && (
         <Card className="border-yellow-500/50 bg-yellow-500/10">
           <CardContent className="py-4">

@@ -21,6 +21,7 @@ class SiteSettings extends Model
         return [
             'social_links' => 'array',
             'stats' => 'array',
+            'maintenance_mode' => 'boolean',
             'updated_at' => 'datetime',
         ];
     }

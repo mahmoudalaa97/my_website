@@ -1,4 +1,21 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const ACCESS_TOKEN_KEY = "accessToken";
+
+function getAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return sessionStorage.getItem(ACCESS_TOKEN_KEY);
+}
+
+function setAccessToken(token: string | null) {
+  if (typeof window === "undefined") return;
+  if (token) sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
+  else sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+}
+
+function authHeaders(): HeadersInit {
+  const token = getAccessToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 interface ApiResponse<T> {
   success: boolean;
@@ -36,6 +53,7 @@ async function fetchApi<T>(
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
       ...options.headers,
     },
   });
@@ -59,6 +77,9 @@ async function uploadFile<T>(
   const response = await fetch(`${API_URL}${endpoint}`, {
     method: "POST",
     credentials: "include",
+    headers: {
+      ...authHeaders(),
+    },
     body: formData,
   });
 
@@ -134,6 +155,7 @@ export interface SiteSettings {
   stats: Array<{ value: string; label: string }>;
   footerText: string;
   copyrightText: string;
+  maintenanceMode?: boolean;
   updatedAt: string;
 }
 
@@ -149,15 +171,24 @@ export interface AdminUser {
 
 export const api = {
   // Auth
-  login: (email: string, password: string) =>
-    fetchApi<{ accessToken: string; admin: AdminUser }>(
+  login: async (email: string, password: string) => {
+    const res = await fetchApi<{ accessToken: string; admin: AdminUser }>(
       "/auth/login",
       {
         method: "POST",
         body: JSON.stringify({ email, password }),
       }
-    ),
-  logout: () => fetchApi("/auth/logout", { method: "POST" }),
+    );
+    if (res.data?.accessToken) setAccessToken(res.data.accessToken);
+    return res;
+  },
+  logout: async () => {
+    try {
+      return await fetchApi("/auth/logout", { method: "POST" });
+    } finally {
+      setAccessToken(null);
+    }
+  },
   getSession: () =>
     fetchApi<{ isAuthenticated: boolean; admin?: AdminUser }>(
       "/auth/session"
