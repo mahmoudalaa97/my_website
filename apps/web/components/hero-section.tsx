@@ -28,10 +28,10 @@ const transitionVariants = {
 }
 
 const defaultStats = [
-    { value: '5+', label: 'Years Experience' },
-    { value: '50+', label: 'Projects Delivered' },
-    { value: '30+', label: 'Happy Clients' },
-    { value: '100%', label: 'Satisfaction Rate' },
+    { value: '5+', label: 'Years Building' },
+    { value: '50+', label: 'Businesses Online' },
+    { value: '30+', label: 'On Google Maps' },
+    { value: '100%', label: 'Owner Approved' },
 ]
 
 interface HeroSectionProps {
@@ -39,15 +39,11 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ settings }: HeroSectionProps) {
-    const heroTitle = settings?.heroTitle || 'Transform Your Business With Technology'
-    const heroSubtitle = settings?.heroSubtitle || "I help businesses solve complex problems through custom software solutions. From traditional processes to digital systems — let's modernize your operations together."
-    const tagline = settings?.tagline || 'Digital Transformation Expert'
+    const heroTitle = settings?.heroTitle || 'Grow Your Business Online'
+    const heroSubtitle = settings?.heroSubtitle || "I build websites and mobile apps for startups and small business owners — and get you on Google Maps so customers actually find you. Launch fast, spend less, grow more."
+    const tagline = settings?.tagline || 'Software partner for startups & small business owners'
     const stats = settings?.stats?.length ? settings.stats : defaultStats
 
-    // Split title for gradient effect
-    const titleParts = heroTitle.split(' ')
-    const firstPart = titleParts.slice(0, Math.ceil(titleParts.length / 2)).join(' ')
-    const secondPart = titleParts.slice(Math.ceil(titleParts.length / 2)).join(' ')
 
     return (
         <section id="home" className="relative min-h-screen overflow-hidden">
@@ -74,16 +70,9 @@ export default function HeroSection({ settings }: HeroSectionProps) {
                                 speedSegment={0.3}
                                 as="h1"
                                 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-                                {firstPart}
+                                {heroTitle}
                             </TextEffect>
-                            <TextEffect
-                                preset="fade-in-blur"
-                                speedSegment={0.3}
-                                delay={0.3}
-                                as="span"
-                                className="block text-gradient text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl mt-2">
-                                {secondPart}
-                            </TextEffect>
+                        
                         </div>
 
                         {/* Subheadline */}
@@ -115,8 +104,8 @@ export default function HeroSection({ settings }: HeroSectionProps) {
                                 asChild
                                 size="lg"
                                 className="rounded-full px-8 text-base glow group">
-                                <Link href="#portfolio">
-                                    <span>View My Work</span>
+                                <Link href="#contact">
+                                    <span>Start Growing</span>
                                     <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
                                 </Link>
                             </Button>
@@ -125,8 +114,8 @@ export default function HeroSection({ settings }: HeroSectionProps) {
                                 size="lg"
                                 variant="outline"
                                 className="rounded-full px-8 text-base border-primary/30 hover:bg-primary/10">
-                                <Link href="#contact">
-                                    <span>Get In Touch</span>
+                                <Link href="#portfolio">
+                                    <span>See What I Build</span>
                                 </Link>
                             </Button>
                         </AnimatedGroup>

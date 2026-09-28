@@ -1,23 +1,49 @@
-FROM php:8.4-cli
-
-RUN apt-get update && apt-get install -y \
-        libzip-dev \
-        zip \
-        unzip \
-        libpng-dev \
-        libjpeg-dev \
-        libfreetype6-dev \
-        libicu-dev \
-        libonig-dev \
-        libxml2-dev \
-        default-mysql-client \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath gd intl \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+FROM composer:2 AS vendor
 
 WORKDIR /app
-EXPOSE 8000
+COPY apps/api-php/composer.json apps/api-php/composer.lock ./
+RUN composer install \
+        --no-dev \
+        --no-scripts \
+        --no-autoloader \
+        --prefer-dist \
+        --no-interaction
 
-CMD ["sh", "-c", "composer install --no-interaction --prefer-dist && php artisan key:generate --force && php artisan migrate --force --seed && php artisan storage:link && php artisan serve --host=0.0.0.0 --port=8000"]
+COPY apps/api-php/ ./
+RUN composer dump-autoload --optimize --no-dev --no-interaction
+
+FROM dunglas/frankenphp:1-php8.4-bookworm
+
+RUN install-php-extensions \
+        pdo_mysql \
+        mbstring \
+        zip \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        intl \
+        opcache
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /app
+
+COPY --from=vendor /app /app
+COPY docker/Caddyfile.api-php /etc/caddy/Caddyfile
+COPY docker/api-php-entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh \
+    && mkdir -p \
+        storage/app/public \
+        storage/framework/cache \
+        storage/framework/sessions \
+        storage/framework/views \
+        storage/logs \
+        bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
+
+ENV APP_ENV=production
+EXPOSE 8080
+
+ENTRYPOINT ["/entrypoint.sh"]

@@ -1,0 +1,12 @@
+{
+	auto_https off
+	persist_config off
+	admin off
+	frankenphp
+}
+
+:{$PORT} {
+	root * /app/public
+	encode gzip
+	php_server
+}

@@ -24,9 +24,8 @@ A modern, full-stack website template with a powerful admin dashboard. Perfect f
 ### Technical Features
 - **Monorepo** with Turborepo for efficient builds
 - **TypeScript** throughout for type safety
-- **PostgreSQL** database with TypeORM
-- **Redis** caching for performance
-- **JWT** and session-based authentication
+- **MySQL** database with Laravel
+- **Sanctum** cookie/token authentication
 - **Docker** support for easy deployment
 
 ## Tech Stack
@@ -35,9 +34,8 @@ A modern, full-stack website template with a powerful admin dashboard. Perfect f
 |-------|------------|
 | Frontend (Public) | Next.js 16, Tailwind CSS, Motion |
 | Frontend (Admin) | Next.js 16, Tailwind CSS, React Query |
-| Backend API | NestJS, TypeORM, PostgreSQL |
-| Caching | Redis |
-| Infrastructure | Docker, Docker Compose |
+| Backend API | Laravel 13, PHP 8.4, MySQL |
+| Infrastructure | Railway, Docker |
 
 ## Quick Start
 
@@ -144,14 +142,14 @@ Manage all content from the admin:
 
 ## Deployment
 
-Each app deploys independently — see **[DEPLOY.md](DEPLOY.md)**.
+Each app deploys independently on **Railway** — see **[DEPLOY.md](DEPLOY.md)**.
 
-- `apps/web` → Vercel
-- `apps/admin` → Vercel
-- `apps/api` → Railway
-- Postgres → Neon / Railway / Supabase
+- `apps/web` → Railway
+- `apps/admin` → Railway
+- `apps/api-php` → Railway
+- MySQL → Railway
 
-Push to `main` and each platform redeploys only the app that changed.
+Push to `main` and Railway rebuilds only the services whose watch paths changed.
 
 ## Documentation
 

@@ -1,29 +1,29 @@
 'use client'
 
-import { Code2, Lightbulb, Rocket, Users } from 'lucide-react'
+import { Rocket, MapPin, TrendingUp, PiggyBank } from 'lucide-react'
 import { motion } from 'motion/react'
 import type { SiteSettings } from '@/lib/api'
 
 const highlights = [
     {
-        icon: Code2,
-        title: 'Technical Excellence',
-        description: 'Expert in modern web technologies, mobile development, and cloud solutions.',
-    },
-    {
-        icon: Lightbulb,
-        title: 'Problem Solver',
-        description: 'I analyze complex challenges and design efficient, scalable solutions.',
-    },
-    {
         icon: Rocket,
-        title: 'Digital Transformation',
-        description: 'Helping businesses transition from traditional to digital-first operations.',
+        title: 'Launch Fast',
+        description: 'From idea to live website or app in weeks — not months. Get in front of customers now.',
     },
     {
-        icon: Users,
-        title: 'Client Focused',
-        description: 'Your success is my priority. I work closely with you at every step.',
+        icon: MapPin,
+        title: 'Get Found Online',
+        description: 'Website, mobile app, and Google Maps listing so customers can find and reach you.',
+    },
+    {
+        icon: TrendingUp,
+        title: 'Grow With You',
+        description: 'Start small, add features as you grow. Your software scales with your business.',
+    },
+    {
+        icon: PiggyBank,
+        title: 'Startup‑Friendly Pricing',
+        description: 'Honest pricing built for small business budgets. No agency markup, no bloat.',
     },
 ]
 
@@ -33,14 +33,14 @@ interface AboutSectionProps {
 
 export default function AboutSection({ settings }: AboutSectionProps) {
     const siteName = settings?.siteName || 'Your Name'
-    const aboutTitle = settings?.aboutTitle || 'Turning Ideas Into Digital Reality'
-    const aboutDescription = settings?.aboutDescription || `I'm a passionate software developer dedicated to helping businesses embrace technology. With expertise in web and mobile development, I transform complex challenges into elegant, efficient solutions.\n\nMy approach combines technical excellence with a deep understanding of business needs. Whether you're looking to digitize operations, build a new product, or modernize existing systems — I'm here to help you succeed in the digital age.`
+    const aboutTitle = settings?.aboutTitle || 'Your Software Partner For Growth'
+    const aboutDescription = settings?.aboutDescription || `I'm an entrepreneur and software builder who loves working with startups and small business owners. I've been on your side of the table — I know what it's like to need a real website, an app that works, and customers who can actually find you, without paying agency prices.\n\nI build the whole thing with you: your website, your mobile app, your Google Business Profile — all connected so your business shows up online, ranks in "near me" searches, and turns visitors into customers. Simple, honest, and priced for real business owners.`
     
     const descriptionParts = aboutDescription.split('\n\n')
     const yearsExperience = settings?.stats?.find(s => s.label.toLowerCase().includes('experience'))?.value || '5+'
 
     return (
-        <section id="about" className="relative py-24 md:py-32">
+        <section id="about" className="relative py-24 md:py-32 bg-gradient-to-b from-background to-primary/10">
             {/* Background */}
             <div className="absolute inset-0 -z-10">
                 <div className="absolute top-1/2 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
@@ -72,15 +72,15 @@ export default function AboutSection({ settings }: AboutSectionProps) {
                                         </div>
                                         <div className="pl-4 text-muted-foreground">
                                             <span className="text-green-400">role</span>:{' '}
-                                            <span className="text-amber-400">&quot;Full-Stack Developer&quot;</span>,
+                                            <span className="text-amber-400">&quot;Software Partner&quot;</span>,
                                         </div>
                                         <div className="pl-4 text-muted-foreground">
-                                            <span className="text-green-400">mission</span>:{' '}
-                                            <span className="text-amber-400">&quot;Digital Transformation&quot;</span>,
+                                            <span className="text-green-400">helps</span>:{' '}
+                                            <span className="text-amber-400">&quot;Startups & SMBs&quot;</span>,
                                         </div>
                                         <div className="pl-4 text-muted-foreground">
-                                            <span className="text-green-400">passion</span>:{' '}
-                                            <span className="text-amber-400">&quot;Solving Problems&quot;</span>,
+                                            <span className="text-green-400">builds</span>:{' '}
+                                            <span className="text-amber-400">&quot;Websites, Apps, Google Presence&quot;</span>,
                                         </div>
                                         <div className="text-muted-foreground">{'}'}</div>
                                     </div>

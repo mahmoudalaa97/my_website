@@ -11,6 +11,7 @@ import { resolveMediaUrl } from '@/lib/media-url'
 const menuItems = [
     { name: 'About', href: '#about' },
     { name: 'Services', href: '#services' },
+    { name: 'Google Maps', href: '#google-maps' },
     { name: 'Portfolio', href: '#portfolio' },
     { name: 'Pricing', href: '#pricing' },
     { name: 'Contact', href: '#contact' },

@@ -51,7 +51,7 @@ class AuthController extends Controller
             app()->isProduction(),
             true,
             false,
-            'lax'
+            env('SESSION_SAME_SITE', 'lax')
         );
     }
 

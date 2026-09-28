@@ -1,0 +1,19 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "docker/Dockerfile.api-php",
+    "watchPatterns": [
+      "apps/api-php/**",
+      "docker/Dockerfile.api-php",
+      "docker/Caddyfile.api-php",
+      "docker/api-php-entrypoint.sh"
+    ]
+  },
+  "deploy": {
+    "healthcheckPath": "/api/health",
+    "healthcheckTimeout": 120,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}

@@ -1,16 +1,18 @@
 'use client'
 
-import { 
-    Globe, 
-    Smartphone, 
-    Workflow, 
-    Database, 
-    MessageSquare, 
+import {
+    Globe,
+    Smartphone,
+    Workflow,
+    Database,
+    MessageSquare,
     Wrench,
     ArrowRight,
     Code,
     Zap,
     ShoppingCart,
+    MapPin,
+    LifeBuoy,
     LucideIcon
 } from 'lucide-react'
 import { motion } from 'motion/react'
@@ -27,44 +29,46 @@ const iconMap: Record<string, LucideIcon> = {
     Code,
     Zap,
     ShoppingCart,
+    MapPin,
+    LifeBuoy,
 }
 
 const defaultServices = [
     {
         icon: 'Globe',
-        title: 'Web Application Development',
-        description: 'Custom web applications built with modern technologies. From simple websites to complex enterprise solutions.',
-        features: ['React / Next.js', 'Responsive Design', 'SEO Optimized'],
+        title: 'Business Websites',
+        description: 'Fast, modern websites built to attract customers and convert. Mobile‑friendly, SEO‑ready, and easy to update.',
+        features: ['Custom design', 'Mobile‑first', 'SEO optimized'],
     },
     {
         icon: 'Smartphone',
-        title: 'Mobile App Development',
-        description: 'Native and cross-platform mobile applications that deliver exceptional user experiences.',
-        features: ['iOS & Android', 'React Native / Flutter', 'App Store Ready'],
+        title: 'Mobile Apps',
+        description: 'iOS and Android apps that let your customers order, book, and connect with your business from their phone.',
+        features: ['iOS & Android', 'App Store & Play Store', 'Push notifications'],
+    },
+    {
+        icon: 'MapPin',
+        title: 'Google Maps & Local Presence',
+        description: 'Get listed on Google Maps, verified, and optimized so nearby customers actually find you in search.',
+        features: ['Google Business Profile', 'Local SEO', 'Reviews & photos'],
+    },
+    {
+        icon: 'ShoppingCart',
+        title: 'E‑commerce & Online Ordering',
+        description: 'Sell products or accept orders online. Payments, inventory, delivery — all in one place.',
+        features: ['Online store', 'Payments integrated', 'Order management'],
     },
     {
         icon: 'Workflow',
-        title: 'Business Process Digitization',
-        description: 'Transform manual workflows into automated digital systems. Increase efficiency and reduce errors.',
-        features: ['Workflow Automation', 'Custom Dashboards', 'Real-time Analytics'],
+        title: 'Automation That Saves Time',
+        description: 'Automate bookings, invoices, follow‑ups and daily tasks so you can focus on your customers, not paperwork.',
+        features: ['Bookings & invoices', 'Email/WhatsApp automation', 'Simple dashboards'],
     },
     {
-        icon: 'Database',
-        title: 'System Integration',
-        description: 'Connect disparate systems and create unified data flows. API development and third-party integrations.',
-        features: ['API Development', 'Data Migration', 'Cloud Integration'],
-    },
-    {
-        icon: 'MessageSquare',
-        title: 'Technical Consulting',
-        description: 'Expert guidance on technology decisions, architecture planning, and digital strategy.',
-        features: ['Tech Stack Selection', 'Architecture Review', 'Best Practices'],
-    },
-    {
-        icon: 'Wrench',
-        title: 'Custom Software Solutions',
-        description: 'Tailored software built specifically for your unique business requirements and challenges.',
-        features: ['Bespoke Development', 'Scalable Solutions', 'Ongoing Support'],
+        icon: 'LifeBuoy',
+        title: 'Ongoing Support & Growth',
+        description: 'I stick around after launch — updates, fixes, new features, and help growing your online presence as you scale.',
+        features: ['Monthly updates', 'Priority support', 'Growth advice'],
     },
 ]
 
@@ -94,12 +98,12 @@ export default function ServicesSection({ services }: ServicesSectionProps) {
                 >
                     <span className="text-primary font-medium">Services</span>
                     <h2 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
-                        Solutions That Drive
-                        <span className="text-gradient"> Your Success</span>
+                        Everything You Need To
+                        <span className="text-gradient"> Grow Online</span>
                     </h2>
                     <p className="mt-6 text-lg text-muted-foreground">
-                        From concept to deployment, I offer comprehensive services to help you 
-                        leverage technology for business growth and operational excellence.
+                        Websites, mobile apps, Google Maps presence, and automation — built together
+                        so your business gets found, gets customers, and keeps growing.
                     </p>
                 </motion.div>
 

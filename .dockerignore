@@ -69,3 +69,11 @@ docker-compose*
 
 # Uploads (if not needed in production)
 uploads/
+
+# Laravel (installed in the API image)
+apps/api-php/vendor
+apps/api-php/node_modules
+apps/api-php/storage/logs/*
+apps/api-php/storage/framework/cache/*
+apps/api-php/storage/framework/sessions/*
+apps/api-php/storage/framework/views/*
